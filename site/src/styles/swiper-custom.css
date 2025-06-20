@@ -1,0 +1,8 @@
+.thumbSwiper .swiper-slide {
+  opacity: 0.4;
+  cursor: pointer;
+}
+
+.thumbSwiper .swiper-slide-thumb-active {
+  opacity: 1;
+}

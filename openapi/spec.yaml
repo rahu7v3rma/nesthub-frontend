@@ -1,0 +1,4125 @@
+openapi: 3.1.0
+info:
+  title: NP Backend OpenAPI spec
+  version: 0.1.0
+paths:
+  /properties:
+      get:
+        summary: Get list of properties
+        responses:
+          '200':
+            description: Properties fetched successfully
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      example: true
+                    message:
+                      type: string
+                      example: Properties fetched successfully.
+                    status:
+                      type: integer
+                      example: 200
+                    data:
+                      type: object
+                      properties:
+                        list:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/PropertyListItemSchema'
+                        page:
+                          type: integer
+                          example: 1
+                        has_next:
+                          type: boolean
+                          example: false
+                        total:
+                          type: integer
+                          example: 4
+                examples:
+                  example:
+                    value:
+                      success: true
+                      message: Properties fetched successfully.
+                      status: 200
+                      data:
+                        list:
+                          - id: 78
+                            property_details: []
+                            realtor_property_id: 89
+                            has_disclosures: true
+                            offers: []
+                            additional_information: "property_additional_information"
+                            address: "1458 Miloiki Street"
+                            city: "Honolulu"
+                            county_or_parish: "Oahu"
+                            created_at: "2025-05-28T13:25:39.950213Z"
+                            deadline_datetime: null
+                            has_unread_messages: false
+                            image: "https://imagecdn.realty.com/photos/bluestack/1019520412/1.jpg?w=500"
+                            is_deadline_checked: false
+                            is_property_viewed_by_client: false
+                            latitude: 21.308506
+                            listing_id: 1019520412
+                            longitude: -157.682219
+                            name: "Jeffrey N Samuels"
+                            no_of_baths: 2
+                            no_of_beds: 3
+                            note: ""
+                            open_house_time: null
+                            price: 825000
+                            redfin_url: null
+                            square_feet_size: 2406
+                            state_or_province: "HI"
+                            tag: null
+                            updated_at: "2025-05-28T13:25:39.950225Z"
+                            zillow_url: null
+                            zip_code: "96825"
+                        page: 1
+                        has_next: false
+                        total: 4
+          '400':
+            description: "Bad Request (e.g., if realtor_property_id is provided but invalid format)."
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/error'
+          '401':
+            description: Authentication credentials were not provided or are invalid.
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/error'
+          '403':
+            description: Permission denied.
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/error'
+          '404':
+            description: Property not found with the given ID.
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/error'
+                  example:
+                    success: false
+                    message: Property not found.
+                    code: not_found
+                    status: 404
+                    data: {}
+      security:
+        - auth_key: []
+  /properties/details/{property_id}:
+    get:
+      summary: Get details of a specific property
+      operationId: getPropertyDetailsById
+      tags:
+        - Properties
+      parameters:
+        - name: property_id
+          in: path
+          required: true
+          description: Numeric ID of the property to retrieve.
+          schema:
+            type: integer
+            example: 1
+        - name: realtor_property_id
+          in: query
+          required: false
+          description: "Optional RealtorProperty ID, used for context (e.g., fetching specific offers, disclosures, comparables related to a realtor-client interaction with this property)."
+          schema:
+            type: integer
+            example: 101
+      responses:
+        '200':
+          description: Property details fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Property details fetched successfully.
+                  status:
+                    type: integer
+                    example: 200
+                  data:
+                    $ref: '#/components/schemas/PropertyDetailsDataSchema'
+        '400':
+          description: "Bad Request (e.g., if realtor_property_id is provided but invalid format)."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '401':
+          description: Authentication credentials were not provided or are invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Permission denied.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Property not found with the given ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+                example:
+                  success: false
+                  message: Property not found.
+                  code: not_found
+                  status: 404
+                  data: {}
+      security:
+        - auth_key: []
+  /user/client:
+    get:
+      summary: List clients for the realtor
+      operationId: listClients
+      tags:
+        - Client Management
+      parameters:
+        - name: search
+          in: query
+          required: false
+          description: Search term for client name or email
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          description: Page number for pagination
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          description: Number of items per page
+          schema:
+            type: integer
+            default: 10
+        - name: active
+          in: query
+          required: false
+          description: Filter by active status (true or false)
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Clients fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  status:
+                    type: integer
+                  data:
+                    type: object
+                    properties:
+                      list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            name:
+                              type: string
+                            email:
+                              type: string
+                              format: email
+                            phone:
+                              type: string
+                            propertiesCount:
+                              type: integer
+                            lastActivity:
+                              type: string
+                              format: date-time
+                              example: "2024-03-20T10:30:00Z"
+                      page:
+                        type: integer
+                      has_next:
+                        type: boolean
+                      total:
+                        type: integer
+              examples:
+                active_clients:
+                  summary: Response when 'active=true'
+                  value:
+                    success: true
+                    message: Clients fetched successfully.
+                    status: 200
+                    data:
+                      list:
+                        - id: "101"
+                          name: "Active Client Alice"
+                          email: "alice.active@example.com"
+                          phone: "1110001111"
+                          propertiesCount: 5
+                          lastActivity: "2024-03-20T10:30:00Z"
+                        - id: "102"
+                          name: "Active Client Bob"
+                          email: "bob.active@example.com"
+                          phone: "2220002222"
+                          propertiesCount: 2
+                          lastActivity: "2024-03-20T10:30:00Z"
+                      page: 1
+                      has_next: false
+                      total: 2
+                inactive_clients:
+                  summary: Response when 'active=false'
+                  value:
+                    success: true
+                    message: Clients fetched successfully.
+                    status: 200
+                    data:
+                      list:
+                        - id: "201"
+                          name: "Inactive Client Charles"
+                          email: "charles.inactive@example.com"
+                          phone: "3330003333"
+                          propertiesCount: 1
+                          lastActivity: "2024-03-20T10:30:00Z"
+                      page: 1
+                      has_next: false
+                      total: 1
+                all_clients:
+                  summary: Response when 'active' parameter is not provided
+                  value:
+                    success: true
+                    message: Clients fetched successfully.
+                    status: 200
+                    data:
+                      list:
+                        - id: "101"
+                          name: "Active Client Alice"
+                          email: "alice.active@example.com"
+                          phone: "1110001111"
+                          propertiesCount: 5
+                          lastActivity: "2024-03-20T10:30:00Z"
+                        - id: "102"
+                          name: "Active Client Bob"
+                          email: "bob.active@example.com"
+                          phone: "2220002222"
+                          propertiesCount: 2
+                          lastActivity: "2024-03-20T10:30:00Z"
+                        - id: "201"
+                          name: "Inactive Client Charles"
+                          email: "charles.inactive@example.com"
+                          phone: "3330003333"
+                          propertiesCount: 1
+                          lastActivity: "2024-03-20T10:30:00Z"
+                      page: 1
+                      has_next: false
+                      total: 3
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '401':
+          description: Authentication credentials were not provided or are invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Permission denied (e.g., authenticated user is not a realtor).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      security:
+        - auth_key: []
+    post:
+      summary: Create a new client
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                  example: "Any Name"
+                last_name:
+                  type: string
+                  example: ""
+                email:
+                  type: string
+                  format: email
+                  example: "anyname@example.com"
+                phone:
+                  type: integer # Note: Your ClientPostRequestSerializer expects phone as string and validates 10 digits. Consider changing this example to string "1234567890"
+                  example: 3489032
+              required:
+                - first_name
+                - phone
+      responses:
+        '200': # Your view returns 200 OK on successful creation
+          description: Client created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Client created successfully
+                  status:
+                    type: integer
+                    example: 200
+                  data:
+                    type: object # Based on ClientPostResponseData structure
+                    properties:
+                      parent:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                            example: 1
+                          name:
+                            type: string
+                            example: "Any Name" # Assuming first_name from request becomes name
+                          email:
+                            type: string
+                            format: email
+                            example: "anyname@example.com"
+                          phone:
+                            type: string # Should match ClientResponseSchema
+                            example: "03489032" # Assuming this if input is integer and gets padded/formatted
+                          property_count:
+                            type: integer
+                            example: 0
+                      members:
+                        type: array
+                        items: {} # Empty array if no members created by default in this example
+                        example: []
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '401':
+          description: Authentication credentials were not provided or are invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Permission denied.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '500':
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      security:
+        - auth_key: []
+  /user/client-details/{client_id}:
+    parameters:
+      - name: client_id
+        in: path
+        required: true
+        description: Numeric ID of the client to fetch details for.
+        schema:
+          type: integer
+    get:
+      summary: Get details of a specific client, including their family members
+      operationId: getClientDetailsById
+      tags:
+        - Client Management
+      responses:
+        '200':
+          description: Client details fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Client details fetched successfully.
+                  status:
+                    type: integer
+                    example: 200
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      name:
+                        type: string
+                        example: "Parent Client Name"
+                      email:
+                        type: string
+                        format: email
+                        example: "parent@example.com"
+                      phone:
+                        type: string
+                        example: "0987654321"
+                      members:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              example: 2
+                            name:
+                              type: string
+                              example: "Family Member"
+                            email:
+                              type: string
+                              format: email
+                              example: "member@example.com"
+                            phone:
+                              type: string
+                              example: "1122334455"
+        '401':
+          description: Authentication credentials were not provided or are invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Permission denied (e.g., authenticated user is not a realtor).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Client not found with the given ID, or client does not belong to the authenticated realtor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      security:
+        - auth_key: []                          
+  /user/client/{id}:
+    put:
+      summary: Update an existing client
+      operationId: updateClient
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the client to update
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - first_name
+                - last_name
+                - email
+                - phone
+              properties:
+                first_name:
+                  type: string
+                  example: Any Name
+                last_name:
+                  type: string
+                  example: Doe
+                email:
+                  type: string
+                  format: email
+                  example: anyname@example.com
+                phone:
+                  type: integer
+                  example: 9876543210
+      responses:
+        '200':
+          description: Client updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Client created successfully
+                  status:
+                    type: integer
+                    example: 200
+                  data:
+                    type: object
+                    properties:
+                      client:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                            example: 1
+                          first_name:
+                            type: string
+                            example: Any Name
+                          last_name:
+                            type: string
+                            example: Doe
+                          email:
+                            type: string
+                            example: anyname@example.com
+                          phone:
+                            type: integer
+                            example: 9876543210    
+  /user/client/{id}:
+    delete:
+      summary: Delete a client
+      description: Deletes a client by ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the client to delete
+          schema:
+            type: integer
+            example: 7
+      responses:
+        '200':
+          description: Client deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Client created successfully
+                  status:
+                    type: integer
+                    example: 200
+                  data:
+                    type: object
+                    example: {}
+        '404':
+          description: Client not found
+        '500':
+          description: Server error                    
+  /campaign/{campaign_code}/login:
+    post:
+      summary: Campaign login
+      parameters:
+        - name: campaign_code
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: Email for login attempt
+                phone_number:
+                  type: string
+                  description: Email for login attempt
+                auth_id:
+                  type: string
+                  description: Email for login attempt
+                otp:
+                  type: string
+                  description: Password for login attempt
+      responses:
+        '200':
+          description: Credentials are correct
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  status:
+                    type: number
+                  data:
+                    type: object
+                    properties:
+                      username:
+                        type: string
+                      first_name:
+                        type: string
+                      last_name:
+                        type: string
+                      email:
+                        type: string
+                      auth_token:
+                        type: string
+                      user_type:
+                        type: string
+                        enum: [realtor, user]
+                        description: Type of user (realtor or user)
+              examples:
+                example:
+                  value:
+                    success: true
+                    message: User logged in successfully.
+                    status: 200
+                    data:
+                      username: user1
+                      first_name: Some
+                      last_name: Name
+                      email: user1@example.example
+                      auth_token: abcd1234
+                      user_type: realtor
+        '400':
+          description: Request is invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: request_invalid
+                    message: Request is invalid.
+                    status: 400
+                    data: {}
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: invalid_credentials
+                    message: Invalid credentials.
+                    status: 401
+                    data: {}
+      description: Log in as a campaign employee
+  /user/login:
+    post:
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: Email for login attempt
+                password:
+                  type: string
+                  description: Password for login attempt
+                coach:
+                  type: boolean
+                  default: false
+              required:
+                - email
+                - password
+      responses:
+        '200':
+          description: Credentials are correct
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  status:
+                    type: number
+                  data:
+                    type: object
+                    properties:
+                      username:
+                        type: string
+                      first_name:
+                        type: string
+                      last_name:
+                        type: string
+                      email:
+                        type: string
+                      auth_token:
+                        type: string
+                      user_type:
+                        type: string
+                        enum: [realtor, user]
+                        description: Type of user (realtor or user)
+              examples:
+                example:
+                  value:
+                    success: true
+                    message: User logged in successfully.
+                    status: 200
+                    data:
+                      username: user1
+                      first_name: Some
+                      last_name: Name
+                      email: user1@example.example
+                      auth_token: abcd1234
+                      user_type: realtor
+        '400':
+          description: Request is invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: request_invalid
+                    message: Request is invalid.
+                    status: 400
+                    data: { }
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: invalid_credentials
+                    message: Invalid credentials.
+                    status: 401
+                    data: { }
+        '403':
+          description: Credentials correct but user has to change password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: must_change_password
+                    message: Please change your password.
+                    status: 403
+                    data: { }
+      description: Log in to an existing account
+  /user/logout:
+    post:
+      operationId: user_logout_create
+      description: Logout an active session or invalidate a PAT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: Email of the user logging out
+                token:
+                  type: string
+                  description: The PAT to invalidate
+              required:
+                - token
+      responses:
+        '200':
+          description: Logged out successfully or PAT invalidated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  status:
+                    type: integer
+                  data:
+                    type: object
+                    additionalProperties: true
+                examples:
+                  example:
+                    success: true
+                    message: User logged out successfully or PAT invalidated.
+                    status: 200
+                    data: {}
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                examples:
+                  example:
+                    detail: Invalid token or unauthorized access.
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                examples:
+                  example:
+                    detail: An unexpected error occurred.
+      tags:
+        - user
+      security:
+        - auth_key: []    
+  /user/sign-up:
+    post:
+      operationId: user_sign-up_create
+      description: Sign up new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+              required:
+                - email
+                - password
+                - first_name
+                - last_name
+            examples:
+              example:
+                value:
+                  email: admin@gmail.com
+                  password: '123456'
+                  first_name: John
+                  last_name: Doe
+      responses:
+        '200':
+          description: User successfully created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  status:
+                    type: integer
+                  data:
+                    type: object
+                    properties:
+                      username:
+                        type: string
+                      first_name:
+                        type: string
+                      last_name:
+                        type: string
+                      email:
+                        type: string
+                      auth_token:
+                        type: string
+              examples:
+                example:
+                  value:
+                    success: true
+                    message: User successfully created.
+                    status: 200
+                    data:
+                      username: user1
+                      first_name: Some
+                      last_name: Name
+                      email: user1@example.example
+                      auth_token: abcd1234
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  code:
+                    type: string
+                  status:
+                    type: integer
+                  data:
+                    type: object
+                    properties: { }
+              examples:
+                example:
+                  value:
+                    success: false
+                    message: Email already exists.
+                    code: email_already_exists
+                    status: 401
+                    data: { }
+  /user/logout:
+    post:
+      operationId: user_logout_create
+      description: Logout an active session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string                     
+      responses:
+        '200':
+          description: Logged out successfuly
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    additionalProperties: true
+                examples:
+                  example:
+                    success: true
+                    message: User logged out successfully.
+                    status: 200
+                    data: { }
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                examples:
+                  example:
+                    detail: Invalid token
+      tags:
+        - user
+      security:
+        - auth_key: [ ]
+  /survey/{id}:
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+    delete:
+      summary: Delete user survey
+      responses:
+        '200':
+          description: User Survey deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  status:
+                    type: number
+                  data:
+                    type: object
+              examples:
+                example:
+                  value:
+                    success: true
+                    message: Survey deleted successfully.
+                    status: 200
+                    data: { }
+        '400':
+          description: Request is invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: request_invalid
+                    message: Request is invalid.
+                    status: 400
+                    data: { }
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: unauthorized
+                    message: Unauthorized.
+                    status: 401
+                    data: { }
+      description: Delete a user survey
+      security:
+        - auth_key: [ ]
+    put:
+      summary: Update Application
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Application name
+                survey_id:
+                  type: number
+                  description: survey id
+                responses:
+                  type: array
+                  description: list of response having id, question and answer
+                status:
+                  type: string
+                  description: survey status
+      responses:
+        '200':
+          description: Credentials are correct
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  status:
+                    type: number
+                  data:
+                    type: object
+              examples:
+                example:
+                  value:
+                    success: true
+                    message: Survey updated successfully.
+                    status: 200
+                    data: { }
+        '400':
+          description: Request is invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: request_invalid
+                    message: Request is invalid.
+                    status: 400
+                    data: { }
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: invalid_credentials
+                    message: Invalid credentials.
+                    status: 401
+                    data: { }
+  /survey/:
+    post:
+      summary: Submit survey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Application name
+                survey_id:
+                  type: number
+                  description: survey id
+                responses:
+                  type: array
+                  description: list of response having id, question and answer
+                status:
+                  type: string
+                  description: survey status
+      responses:
+        '200':
+          description: Credentials are correct
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  status:
+                    type: number
+                  data:
+                    type: object
+                    properties:
+                      username:
+                        type: string
+                      first_name:
+                        type: string
+                      last_name:
+                        type: string
+                      email:
+                        type: string
+                      auth_token:
+                        type: string
+              examples:
+                example:
+                  value:
+                    success: true
+                    message: Survey Submitted successfully.
+                    status: 200
+                    data: {}
+        '400':
+          description: Request is invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: request_invalid
+                    message: Request is invalid.
+                    status: 400
+                    data: { }
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: invalid_credentials
+                    message: Invalid credentials.
+                    status: 401
+                    data: { }
+    get:
+      summary: get all user surveys
+      tags: [ ]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  status:
+                    type: number
+                  data:
+                    type: object
+              examples:
+                example:
+                  value:
+                    success: true
+                    message: User survey fetched Successfully.
+                    status: 200
+                    data:
+                      - id: 1
+                        name: "Did you forget?"
+                        survey_id: 1000115185
+                        response_id: 1003827463
+                        created_date: "2023-03-08T12:12:12Z"
+                        status: Incomplete
+                      - id: 2
+                        name: "Yum yum"
+                        survey_id: 1000115185
+                        response_id: 1003827463
+                        created_date: "2023-04-08T12:12:12Z"
+                        status: Submitted
+                      - id: 3
+                        name: "Staying active?"
+                        survey_id: 1000115185
+                        response_id: 1003827463
+                        created_date: "2023-06-08T12:12:12Z"
+                        status: Approved
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: unauthorized
+                    message: Unauthorized.
+                    status: 401
+                    data: { }
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: not_found
+                    message: Not found.
+                    status: 404
+                    data: { }
+      operationId: Get User Surveys
+      security:
+        - auth_key: [ ]
+      description: Get User Surveys
+  /profile/:
+    parameters: [ ]
+    get:
+      summary: ''
+      operationId: get-profile
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  status:
+                    type: number
+                  data:
+                    type: object
+                    properties:
+                      email:
+                        type:
+                          - string
+                          - 'null'
+                      username:
+                        type:
+                          - string
+                          - 'null'
+                      first_name:
+                        type:
+                          - string
+                          - 'null'
+                      last_name:
+                        type:
+                          - string
+                          - 'null'
+                      user_type:
+                        type: string
+                        enum: [user, realtor]
+                        example: realtor
+                      address:
+                        type: string
+                        example: "123 Main St, Anytown, AT 12345"
+                      timestamp:
+                        type: string
+                        format: date-time
+                        example: "2024-03-20T10:00:00Z"
+                      profile_pic:
+                        type: string
+                        format: uri
+                        example: "https://example.com/profile_pictures/user1.jpg"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: unauthorized
+                    message: Unauthorized.
+                    status: 401
+                    data: { }
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: not_found
+                    message: Profile does not exist.
+                    status: 404
+                    data: { }
+      security:
+        - auth_key: [ ]
+  /survey/{application_id}/status:
+    parameters:
+        - name: application_id
+          in: path
+          required: true
+          schema:
+            type: string
+    patch:
+      summary: Update survey status to "Submitted"
+      operationId: update-survey-status
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [ "Submitted" ]
+      responses:
+        '200':
+          description: Status updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  status:
+                    type: number
+                  data:
+                    type: object
+                    properties:
+                      application_id:
+                        type: string
+                      status:
+                        type: string
+              examples:
+                example:
+                  value:
+                    success: true
+                    message: Survey status updated successfully.
+                    status: 200
+                    data:
+                      application_id: '12345'
+                      status: 'Submitted'
+        '400':
+          description: Bad Request (Invalid Status or Missing Information)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: bad_request
+                    message: Invalid request data.
+                    status: 400
+                    data: { }
+        '404':
+          description: Not Found (Survey or Application not found)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: not_found
+                    message: Survey not found.
+                    status: 404
+                    data: { }
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: server_error
+                    message: Something went wrong.
+                    status: 500
+                    data: { }
+      security:
+        - auth_key: []
+
+  /user/reset/request:
+    post:
+      summary: ''
+      operationId: post-user-reset-request
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  status:
+                    type: number
+                  data:
+                    type: object
+              examples:
+                example:
+                  value:
+                    success: true
+                    message: Reset password requested successfully.
+                    status: 200
+                    data: { }
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: request_invalid
+                    message: Request is invalid.
+                    status: 400
+                    data: { }
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: server_error
+                    message: Server error.
+                    status: 500
+                    data: { }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                client:
+                  type: string
+      description: Request a reset password code via email
+  /user/reset/verify:
+    post:
+      summary: ''
+      operationId: post-user-reset-verify
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  status:
+                    type: number
+                  data:
+                    type: object
+              examples:
+                example:
+                  value:
+                    success: true
+                    message: Reset password verified successfully.
+                    status: 200
+                    data: { }
+            application/xml:
+              schema:
+                type: object
+                properties: { }
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: request_invalid
+                    message: Request is invalid.
+                    status: 400
+                    data: { }
+                example-1:
+                  value:
+                    success: false
+                    code: bad_token
+                    message: Invalid or expired token.
+                    status: 400
+                    data: { }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+      description: Verify that a reset password code is valid
+  /user/reset/confirm:
+    post:
+      summary: ''
+      operationId: post-user-reset-confirm
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  status:
+                    type: number
+                  data:
+                    type: object
+              examples:
+                example:
+                  value:
+                    success: true
+                    message: Reset password confirmed successfully.
+                    status: 200
+                    data: { }
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                example:
+                  value:
+                    success: false
+                    code: request_invalid
+                    message: Bad request.
+                    status: 400
+                    data: { }
+                example-1:
+                  value:
+                    success: false
+                    code: password_does_not_conform
+                    message: Request is invalid.
+                    status: 400
+                    data: { }
+                example-2:
+                  value:
+                    success: false
+                    code: bad_token
+                    message: Invalid or expired token.
+                    status: 400
+                    data: { }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                password:
+                  type: string
+      description: Use a reset password code to change a user's password
+  /user/verify-account/request:
+    post:
+      operationId: user_verify_account_request
+      description: Request a verify account email
+      requestBody:
+        content:
+          application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              message:
+                type: string
+              status:
+                type: integer
+              data:
+                type: object
+            x-examples:
+              example:
+                success: true
+                message: Email verified successfully.
+                status: 200
+                data: [ ]
+          examples:
+            example:
+              success: true
+              message: Email verified successfully.
+              status: 200
+              data: [ ]
+        '400':
+          description: Bad Request
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              message:
+                type: string
+              code:
+                type: string
+              status:
+                type: integer
+              data:
+                type: object
+                properties:
+                  email:
+                    type: array
+                    items:
+                      type: string
+            x-examples:
+              Example:
+                success: false
+                message: Request is invalid.
+                code: request_invalid
+                status: 400
+                data:
+                  email:
+                    - This field is required.
+          examples:
+            example:
+              success: false
+              message: Request is invalid.
+              code: request_invalid
+              status: 400
+              data:
+                email:
+                  - This field is required.
+        '404':
+          description: email_does_not_exists
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              message:
+                type: string
+              code:
+                type: string
+              status:
+                type: integer
+              data:
+                type: object
+                properties: { }
+            x-examples:
+              example:
+                success: false
+                message: Email does not exist.
+                code: email_does_not_exists
+                status: 404
+                data: { }
+          examples:
+            example:
+              success: false
+              message: Email does not exist.
+              code: email_does_not_exists
+              status: 404
+              data: { }
+      tags:
+        - user
+  /user/verify-account/confirm:
+    post:
+      operationId: confirm verify account
+      description: confirm verify account
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+      responses:
+        '201':
+          description: ''
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              message:
+                type: string
+              status:
+                type: integer
+              data:
+                type: object
+            x-examples:
+              example:
+                success: true
+                message: Account Verified Successfully
+                status: 201
+                data:
+                  username: john
+                  first_name: john
+                  last_name: Doe
+                  email: john@gmail.com
+                  auth_token: 804fd8a9261acf37d1e30951bf663e950c385d85
+          examples:
+            example:
+              success: true
+              message: Account Verified Successfully
+              status: 201
+              data:
+                username: john
+                first_name: john
+                last_name: Doe
+                email: john@gmail.com
+                auth_token: 804fd8a9261acf37d1e30951bf663e950c385d85
+        '400':
+          description: Bad Request
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              message:
+                type: string
+              code:
+                type: string
+              status:
+                type: integer
+              data:
+                type: object
+                properties:
+                  token:
+                    type: array
+                    items:
+                      type: string
+            x-examples:
+              Example:
+                success: false
+                message: Request is invalid.
+                code: request_invalid
+                status: 400
+                data:
+                  token:
+                    - This field is required.
+          examples:
+            example:
+              success: false
+              message: Request is invalid.
+              code: request_invalid
+              status: 400
+              data:
+                token:
+                  - This field is required.
+      tags:
+        - user
+    parameters: [ ]
+  /survey/upload-pdfs:
+    post:
+      summary: Starts the processing of parsing PDF files in a background task and returns a task ID.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                "2022":
+                  type: object
+                  properties:
+                    type: string
+                    format: binary
+                "2023":
+                  type: object
+                  properties:
+                    type: string
+                    format: binary
+                "2024":
+                  type: object
+                  properties:
+                    type: string
+                    format: binary
+              required:
+                - "2022"
+                - "2023"
+                - "2024"
+      responses:
+        '200':
+          description: PDFs processing task triggered successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadPdfsResponse'
+              examples:
+                example:
+                  value:
+                    success: true
+                    message: The PDF for the current year is being processed, while PDFs from other years have been stored as is.
+                    status: 200
+                    data:
+                      task_id: 15
+        '400':
+          description: Bad Request - Invalid input.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /survey/validate-1040-pdfs:
+    post:
+      summary: Validate uploaded PDF files for 1040 forms for specific years
+      operationId: validate1040Pdfs
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+              required:
+                - files
+      responses:
+        '200':
+          description: Success - All PDFs validated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  success: true
+                  message: All PDFs validated successfully.
+                  status: 200
+                  data: {}
+        '400':
+          description: Error - PDF validation failed.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Request is invalid.
+                  code:
+                    type: string
+                    example: request_invalid
+                  status:
+                    type: integer
+                    example: 400
+                  data:
+                    type: object
+                    properties:
+                      error:
+                        type: string
+                        example: PDFs do not contain a 1040 form for the years 2022 and 2024
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: An unexpected error occurred during PDF validation.
+  /survey/upload-pdfs/{task_id}:
+    post:
+      summary: Starts the processing of parsing PDF files in a background task and returns a task ID.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                "2022":
+                  type: object
+                  properties:
+                    type: string
+                    format: binary
+                "2023":
+                  type: object
+                  properties:
+                    type: string
+                    format: binary
+                "2024":
+                  type: object
+                  properties:
+                    type: string
+                    format: binary
+              required:
+                - "2022"
+                - "2023"
+                - "2024"
+      responses:
+        '200':
+          description: Successful PDF upload and parsing.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckPdfsProcessingTaskResponse'
+              examples:
+                example:
+                  value:
+                    success: true
+                    message: PDF task fetched successfully.
+                    status: 200
+                    data:
+                      status: Success
+                      result:
+                        tax_year_start: 21
+                        tax_year_end: 25, 2030
+                        first_name_middle_initial: Test\n
+                        last_name: User
+                        social_security_number: null
+                        spouse_first_name_middle_initial: Parent test
+                        spouse_last_name: user1
+                        spouse_social_security_number: null
+                        home_address: 3641 N 55TH AVE
+                        apt_no: null
+                        city: Hollywood
+                        state: FL
+                        zip_code: 33021
+                        foreign_country_name: england
+                        foreign_province_state_county: null
+                        foreign_postal_code: null
+                        election_campaign_yes: false
+                        election_campaign_no: true
+                        filing_status_single: true
+                        filing_status_head_of_household: false
+                        filing_status_married_filing_jointly: false
+                        filing_status_married_filing_separately: false
+                        qualifying_surviving_spouse: true
+                        mfs_spouse_name_or_hoh_qss_child_name: HOH
+                        digital_assets_yes: false
+                        digital_assets_no: true
+                        deduction_as_dependent: true
+                        deduction_your_spouse: true
+                        standard_deduction_spouse_itemizes: false
+                        age_blindness_before_jan_2_1959: false
+                        age_blindness_blind: false
+                        spouse_age_blindness_before_jan_2_1959: false
+                        spouse_age_blindness_blind: false
+                        dependents_more_than_four_check_here: false
+                        dependents_first_name_last_name_1: User 1
+                        dependents_social_number_1: 123456678
+                        dependents_relationship_1: Parent
+                        dependents_child_tax_credit_1: false
+                        dependents_credit_for_other_dependents_1: true
+                        dependents_first_name_last_name_2: User 2
+                        dependents_social_number_2: 987643213
+                        dependents_relationship_2: Sibling
+                        dependents_child_tax_credit_2: true
+                        dependents_credit_for_other_dependents_2: false
+                        dependents_first_name_last_name_3: User 3
+                        dependents_social_number_3: 654789098
+                        dependents_relationship_3: Bro
+                        dependents_child_tax_credit_3: false
+                        dependents_credit_for_other_dependents_3: true
+                        dependents_first_name_last_name_4: User 4
+                        dependents_social_number_4: 345678543
+                        dependents_relationship_4: Sister
+                        dependents_child_tax_credit_4: true
+                        dependents_credit_for_other_dependents_4: false
+                        income_w2_total_amount: 25,000
+                        household_employee_wages_not_reported_on_w2: null
+                        tip_income_not_reported_on_line_1a: null
+                        medicaid_waiver_payments_not_reported_on_w2: null
+                        taxable_dependent_care_benefits: null
+                        employer_provided_adoption_benefits: null
+                        wages_from_form_8919: null
+                        other_earned_income: null
+                        nontaxable_combat_pay_election: null
+                        total_income_add_lines: 25,000
+                        tax_exempt_interest: 2a00
+                        taxable_interest: null
+                        qualified_dividends: 3a00
+                        ordinary_dividends: null
+                        pensions_and_annuities: 4a00
+                        taxable_amount_4b: 6,754
+                        ira_distributions: 5a00
+                        taxable_amount_5b: null
+                        social_security_benefits: 6a00
+                        taxable_amount_6b: null
+                        lump_sum_election_method_check_here: false
+                        capital_gain_or_loss_check_here: false
+                        capital_gain_or_loss_input: 86,486
+                        additional_income_schedule_1_line_10: 103,340
+                        total_income_add_lines_1z_to_8: 221,580
+                        adjustments_to_income_schedule_1_line_26: 0
+                        adjusted_gross_income_subtract_line_10_from_9: 221,580
+                        standard_deduction_or_itemized_deductions: 25,900
+                        qualified_business_income_deduction: 21,839
+                        add_lines_12_and_13: 47,739
+                        taxable_income_subtract_line_14_from_11: 173,841
+                        tax_check_if_any_from_forms_1: false
+                        tax_check_if_any_from_forms_2: true
+                        tax_check_if_any_from_forms_3: false
+                        tax_from_forms_input_1: null
+                        tax_from_forms_input_2: 1600
+                        amount_from_schedule_2_line_3: 1700
+                        total_tax_add_lines_16_and_17: 1800
+                        child_tax_credit_from_schedule_8812: 1900
+                        amount_from_schedule_3_line_8: 2000
+                        total_other_payments_and_refundable_credits: 2100
+                        subtract_line_21_from_18: 2200
+                        other_taxes_including_self_employment_tax: 2300
+                        total_tax_add_lines_22_and_23: 2400
+                        federal_income_tax_withheld_from_w2: 25a00
+                        federal_income_tax_withheld_from_1099: 25b00
+                        federal_income_tax_withheld_from_other_forms: 25c00
+                        federal_income_tax_withheld_total: 25d00
+                        estimated_tax_payments_and_amount: 2600
+                        earned_income_credit_eic: 2700
+                        additional_child_tax_credit_from_schedule_8812: 2800
+                        american_opportunity_credit_from_form_8863: 2900
+                        reserved_for_future_use: null
+                        amount_from_schedule_3_line_15: 3100
+                        total_payments_add_lines_27_to_32: null
+                        total_payments_add_lines_25d_26_32: 3300
+                        overpaid_amount_subtract_line_24_from_33: 3400
+                        amount_of_line_34_want_refunded: false
+                        amount_of_line_34_want_refunded_input: 35a00
+                        refund_routing_number: 888888888
+                        refund_checking: false
+                        refund_saving: true
+                        refund_account_number: 77777777777777777
+                        refund_amount_applied_to_2024_estimated_tax: 3600
+                        amount_you_owe: null
+                        estimated_tax_penalty: 3800
+                        third_party_designee_yes: false
+                        third_party_designee_no: false
+                        third_party_designee_name: designer name
+                        third_party_designee_phone: 92341122343
+                        third_party_designee_pin: null
+                        your_occupation: 343423
+                        identity_protection_pin: 233455
+                        spouse_occupation: 123445
+                        spouse_identity_protection_pin: 123455
+                        phone_no: 323434
+                        email: null
+                        preparer_name: prepare name
+                        ptin: ptni
+                        self_employed: true
+                        paid_preparer_firm_name: firm name
+                        paid_preparer_use_phone_no.: 923432344
+                        paid_preparer_use_firm_address: address
+                        paid_preparer_use_firm_EIN: 1234
+        '400':
+          description: Bad Request - Invalid input.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /survey/questions:
+    get:
+      summary: Get all survey questions
+      responses:
+        '200':
+          description: A list of survey questions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Get all Survey Questions successfully
+                  status:
+                    type: integer
+                    example: 200
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 78
+                        question_id:
+                          type: string
+                          example: "1001472486"
+                        question_text:
+                          type: string
+                          example: Number of adults
+                        question_type:
+                          type: string
+                          example: NumberInput
+                        field_name:
+                          type: string
+                          nullable: true
+                          example: no_of_adults
+                        section:
+                          type: string
+                          nullable: true
+                          example: basic info
+              examples:
+                example:
+                  value:
+                    success: true
+                    message: User survey fetched Successfully.
+                    status: 200
+                    data:
+                      - id: 78
+                        question_id: "1001472486"
+                        question_text: "Number of adults"
+                        question_type: "NumberInput"
+                        field_name: "no_of_adults"
+                        section: "basic info"
+                      - id: 79
+                        question_id: "1001472487"
+                        question_text: "Number of dependent children"
+                        question_type: "NumberInput"
+                        field_name: null
+                        section: "basic info"
+                      - id: 80
+                        question_id: "1001472488"
+                        question_text: "Home address"
+                        question_type: "TextInput"
+                        field_name: "HOME_ADDRESS"
+                        section: "Address"
+                      - id: 81
+                        question_id: "1001475445"
+                        question_text: "How many real estate properties do you own or rent? (please include your primary residence, vacation homes, investment properties, and land)"
+                        question_type: "NumberInput"
+                        field_name: "no_of_properties"
+                        section: "Assets"
+                      - id: 82
+                        question_id: "1001475446"
+                        question_text: "How many vehicles do you own or lease?"
+                        question_type: "NumberInput"
+                        field_name: null
+                        section: "Assets"
+                      - id: 83
+                        question_id: "1001574006"
+                        question_text: "Section Question 1"
+                        question_type: "TextInput"
+                        field_name: null
+                        section: null
+                      - id: 84
+                        question_id: "1001574007"
+                        question_text: "Section Text 2"
+                        question_type: "TextInput"
+                        field_name: null
+                        section: null
+  /properties/:
+    get:
+      summary: Get list of properties
+      operationId: listProperties
+      tags:
+        - Properties
+      parameters:
+        - name: search
+          in: query
+          required: false
+          description: Search term for property name or address.
+          schema:
+            type: string
+        - name: sort
+          in: query
+          required: false
+          description: Sort order for properties by price.
+          schema:
+            type: string
+            enum: [ASC, DESC]
+            example: DESC
+        - name: page
+          in: query
+          required: false
+          description: Page number for pagination.
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          description: Number of items per page.
+          schema:
+            type: integer
+            minimum: 1
+            default: 10
+        - name: user_id
+          in: query
+          required: false
+          description: "Client's user ID. Required if the authenticated user is a realtor to fetch properties for a specific client."
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Properties fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Properties fetched successfully.
+                  status:
+                    type: integer
+                    example: 200
+                  data:
+                    $ref: '#/components/schemas/PropertyListResponseDataSchema'
+        '400':
+          description: "Request is invalid. This can be due to invalid query parameters (e.g., bad sort value, non-integer page/limit) or missing 'user_id' if the authenticated user is a realtor."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '401':
+          description: Authentication credentials were not provided or are invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Permission denied.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      security:
+        - auth_key: []
+    post:
+      summary: Create a new property
+      description: Creates a new property record with the given information.
+      tags:
+        - Properties
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: property
+                address:
+                  type: string
+                  example: property_address
+                price:
+                  type: number
+                  example: 1
+                no_of_beds:
+                  type: integer
+                  example: 1
+                no_of_baths:
+                  type: integer
+                  example: 1
+                square_feet_size:
+                  type: number
+                  example: 1
+                additional_information:
+                  type: string
+                  example: property_additional_information
+              required:
+                - name
+                - address
+                - price
+                - no_of_beds
+                - no_of_baths
+                - square_feet_size
+      responses:
+        '201':
+          description: Property created successfully
+        '400':
+          description: Bad request
+  /property/details/{property_id}:
+    get:
+      summary: Get property details
+      parameters:
+        - name: property_id
+          in: path
+          required: true
+          description: The ID of the property to fetch details for.
+          schema:
+            type: string
+            example: '1'
+      responses:
+        '200':
+          description: Property details successfully retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  status:
+                    type: integer
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      address:
+                        type: string
+                      price:
+                        type: integer
+                      openHouseTime:
+                        type: string
+                        format: date-time
+                      images:
+                        type: array
+                        items:
+                          type: string
+                      bedsCount:
+                        type: integer
+                      bathsCount:
+                        type: integer
+                      squareFeet:
+                        type: integer
+                      zillowIntegration:
+                        type: boolean
+                      redzinIntegration:
+                        type: boolean
+                      additionalInformation:
+                        type: string
+                      offers:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            date:
+                              type: string
+                              format: date-time
+                            amount:
+                              type: integer
+                            offer:
+                              type: string
+                      offerGraph:
+                        type: object
+                        properties:
+                          askedPrice:
+                            type: integer
+                          firstOffer:
+                            type: integer
+                          secondOffer:
+                            type: integer
+                          closingOffer:
+                            type: integer
+                      disclosures:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                            dateTime:
+                              type: string
+                              format: date-time
+                      comparables:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            image:
+                              type: string
+                            address:
+                              type: string
+                            squareFeet:
+                              type: integer
+                            listingPrice:
+                              type: integer
+                            closingPrice:
+                              type: integer
+                            amountPerSqrFeet:
+                              type: integer
+                            bedCount:
+                              type: integer
+                            bathCount:
+                              type: integer
+                            onMarket:
+                              type: string
+                              format: date-time
+              examples:
+                example:
+                  value:
+                    success: true
+                    message: Get property details successfully
+                    status: 200
+                    data:
+                      id: '1'
+                      address: '123 Main St, Los Angeles, CA'
+                      price: 350000
+                      openHouseTime: '2025-12-15T15:00:00Z'
+                      images:
+                        - /images/property-demo.png
+                        - /images/property-demo.png
+                      bedsCount: 3
+                      bathsCount: 2
+                      squareFeet: 1234
+                      zillowIntegration: true
+                      redzinIntegration: true
+                      additionalInformation: 'The owner is interested in closing fast so I think theres a time crunch here and if we move fast well have an advantage.'
+                      offers:
+                        - date: '2025-12-14T20:56:00Z'
+                          amount: 1800000
+                          offer: 6
+                        - date: '2025-12-13T14:32:00Z'
+                          amount: 1750000
+                          offer: 1
+                      offerGraph:
+                        askedPrice: 1600000
+                        firstOffer: 1650000
+                        secondOffer: 1800000
+                        closingOffer: 2000000
+                      disclosures:
+                        - name: 'Property Inspection'
+                          dateTime: '2024-12-14T20:56:00Z'
+                        - name: 'Pet inspection report'
+                          dateTime: '2024-12-14T20:57:00Z'
+                        - name: 'HOA document'
+                          dateTime: '2024-12-14T20:59:00Z'
+                        - name: 'HOA document'
+                          dateTime: '2024-12-14T20:59:00Z'
+                        - name: 'HOA document'
+                          dateTime: '2024-12-14T20:59:00Z'
+                      comparables:
+                        - image: '/images/dummy-property.jpg'
+                          address: '1450 Old Summit Rd, Los Gatos'
+                          squareFeet: 2200
+                          listingPrice: 1600000
+                          closingPrice: 2000000
+                          amountPerSqrFeet: 818
+                          bedCount: 2
+                          bathCount: 3
+                          onMarket: '2025-02-25T09:00:00Z'
+                        - image: '/images/dummy-property.jpg'
+                          address: '720 Johnson Ln, Oakland'
+                          squareFeet: 2200
+                          listingPrice: 1600000
+                          closingPrice: 2000000
+                          amountPerSqrFeet: 818
+                          bedCount: 2
+                          bathCount: 3
+                          onMarket: '2025-02-22T19:00:00Z'
+  /properties/chat:
+    post:
+      summary: Send a chat message
+      operationId: sendChatMessage
+      tags:
+        - Chat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Hello, I'm interested in this property"
+                realtor_property_id:
+                  type: integer
+                  example: 123
+              required:
+                - message
+                - realtor_property_id
+      responses:
+        '200':
+          description: Message sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Message sent successfully.
+                  status:
+                    type: integer
+                    example: 200
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      user:
+                        type: integer
+                        example: 1
+                      property:
+                        type: integer
+                        example: 123
+                      message:
+                        type: string
+                        example: "Hello, I'm interested in this property"
+                      is_chat_viewed_by_client:
+                        type: boolean
+                        example: true
+                      timestamp:
+                        type: string
+                        format: date-time
+                        example: "2024-03-20T10:00:00Z"
+                      user_details:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                            example: 1
+                          name:
+                            type: string
+                            example: "John Doe"
+                          email:
+                            type: string
+                            example: "john@example.com"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+  /properties/{property_id}/chat:
+    get:
+      summary: Get chat messages for a property
+      operationId: getChatMessages
+      tags:
+        - Chat
+      parameters:
+        - name: property_id
+          in: path
+          required: true
+          description: ID of the property
+          schema:
+            type: integer
+            example: 1
+        - name: realtor_property_id
+          in: query
+          required: true
+          description: ID of the realtor property
+          schema:
+            type: integer
+            example: 123
+      responses:
+        '200':
+          description: Chat messages retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Messages retrieved successfully
+                  status:
+                    type: integer
+                    example: 200
+                  data:
+                    type: object
+                    properties:
+                      messages:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              example: 1
+                            user:
+                              type: integer
+                              example: 1
+                            property:
+                              type: integer
+                              example: 123
+                            message:
+                              type: string
+                              example: "Hello, I'm interested in this property"
+                            is_chat_viewed_by_client:
+                              type: boolean
+                              example: true
+                            timestamp:
+                              type: string
+                              format: date-time
+                              example: "2024-03-20T10:00:00Z"
+                            user_details:
+                              type: object
+                              properties:
+                                id:
+                                  type: integer
+                                  example: 1
+                                name:
+                                  type: string
+                                  example: "John Doe"
+                                email:
+                                  type: string
+                                  example: "john@example.com"
+                      page:
+                        type: integer
+                        example: 1
+                      has_next:
+                        type: boolean
+                        example: false
+                      total:
+                        type: integer
+                        example: 10
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Property not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+  /properties/{property_id}/chat/new-messages:
+    get:
+      summary: Poll for new chat messages
+      operationId: getPollNewMessages
+      tags:
+        - Chat
+      parameters:
+        - name: property_id
+          in: path
+          required: true
+          description: ID of the property
+          schema:
+            type: integer
+            example: 1
+        - name: realtor_property_id
+          in: query
+          required: true
+          description: ID of the realtor property
+          schema:
+            type: integer
+            example: 123
+        - name: last_message_id
+          in: query
+          required: true
+          description: ID of the last message received
+          schema:
+            type: integer
+            example: 10
+      responses:
+        '200':
+          description: New messages retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: New messages retrieved successfully
+                  status:
+                    type: integer
+                    example: 200
+                  data:
+                    type: object
+                    properties:
+                      messages:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              example: 11
+                            user:
+                              type: integer
+                              example: 1
+                            property:
+                              type: integer
+                              example: 123
+                            message:
+                              type: string
+                              example: "Thank you for your interest!"
+                            is_chat_viewed_by_client:
+                              type: boolean
+                              example: true
+                            timestamp:
+                              type: string
+                              format: date-time
+                              example: "2024-03-20T10:05:00Z"
+                            user_details:
+                              type: object
+                              properties:
+                                id:
+                                  type: integer
+                                  example: 1
+                                name:
+                                  type: string
+                                  example: "John Doe"
+                                email:
+                                  type: string
+                                  example: "john@example.com"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Property not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+  /properties/{property_id}/add-comparable:
+    post:
+      summary: Add a comparable property
+      operationId: addComparable
+      tags:
+        - Properties
+      parameters:
+        - name: property_id
+          in: path
+          required: true
+          description: The ID of the property to add a comparable for
+          schema:
+            type: integer
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                address:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      example: "John Doe"
+                    price:
+                      type: integer
+                      example: 500000
+                    listing_id:
+                      type: string
+                      example: "12345"
+                    no_of_beds:
+                      type: integer
+                      example: 3
+                    no_of_baths:
+                      type: integer
+                      example: 2
+                    square_feet_size:
+                      type: integer
+                      example: 2000
+                    image:
+                      type: string
+                      example: "https://example.com/image.jpg"
+                    photosList:
+                      type: array
+                      items:
+                        type: string
+                    longitude:
+                      type: number
+                      example: -122.4194
+                    latitude:
+                      type: number
+                      example: 37.7749
+                    additional_information:
+                      type: string
+                      example: "Beautiful property with great views"
+                    address:
+                      type: string
+                      example: "123 Main St"
+                    city:
+                      type: string
+                      example: "San Francisco"
+                    county_or_parish:
+                      type: string
+                      example: "San Francisco"
+                    state_or_province:
+                      type: string
+                      example: "CA"
+                    zip_code:
+                      type: string
+                      example: "94105"
+                realtor_property_id:
+                  type: string
+                  example: "123"
+                client_id:
+                  type: string
+                  example: "456"
+                url:
+                  type: string
+                  example: "https://example.com/property"
+                additional_info:
+                  type: array
+                  items:
+                    type: string
+                  example: ["New roof", "Updated kitchen"]
+              required:
+                - address
+                - realtor_property_id
+                - client_id
+      responses:
+        '200':
+          description: Comparable added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Comparable added successfully
+                  status:
+                    type: integer
+                    example: 200
+                  data:
+                    type: object
+                    properties:
+                      to_property:
+                        type: object
+                        properties:
+                          comparable_id:
+                            type: integer
+                            example: 1
+                          image:
+                            type: string
+                            example: "https://example.com/image.jpg"
+                          address:
+                            type: string
+                            example: "123 Main St"
+                          listingPrice:
+                            type: integer
+                            example: 500000
+                          closingPrice:
+                            type: integer
+                            example: 480000
+                          bedsCount:
+                            type: integer
+                            example: 3
+                          bathsCount:
+                            type: integer
+                            example: 2
+                          squareFeet:
+                            type: integer
+                            example: 2000
+                          onMarket:
+                            type: string
+                            format: date-time
+                            example: "2024-03-20T10:00:00Z"
+                          amountPerSqrFeet:
+                            type: number
+                            example: 250
+                      url:
+                        type: string
+                        example: "https://example.com/property"
+                      additional_info:
+                        type: array
+                        items:
+                          type: string
+                        example: ["New roof", "Updated kitchen"]
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '401':
+          description: Authentication credentials were not provided or are invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      security:
+        - auth_key: []
+
+  /properties/{property_id}/comparable/{comparable_id}:
+    delete:
+      summary: Delete a comparable property
+      operationId: deleteComparable
+      tags:
+        - Properties
+      parameters:
+        - name: property_id
+          in: path
+          required: true
+          description: The ID of the property that has the comparable
+          schema:
+            type: integer
+            example: 1
+        - name: comparable_id
+          in: path
+          required: true
+          description: The ID of the comparable to delete
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Comparable deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Comparable deleted successfully
+                  status:
+                    type: integer
+                    example: 200
+                  data:
+                    type: object
+                    example: {}
+        '401':
+          description: Authentication credentials were not provided or are invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Comparable not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      security:
+        - auth_key: []
+  /user/profile:
+    get:
+      summary: Get user profile information
+      operationId: getUserProfile
+      tags:
+        - User Management
+      responses:
+        '200':
+          description: Profile fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Profile fetched successfully.
+                  status:
+                    type: integer
+                    example: 200
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      name:
+                        type: string
+                        example: John Doe
+                      email:
+                        type: string
+                        format: email
+                        example: john.doe@example.com
+                      phone:
+                        type: string
+                        example: "1234567890"
+                      company:
+                        type: string
+                        example: Real Estate Co.
+                      license_id:
+                        type: string
+                        example: "RE123456"
+                      user_type:
+                        type: string
+                        enum: [user, realtor]
+                        example: realtor
+                      address:
+                        type: string
+                        example: "123 Main St, Anytown, AT 12345"
+                      timestamp:
+                        type: string
+                        format: date-time
+                        example: "2024-03-20T10:00:00Z"
+                      profile_pic:
+                        type: string
+                        format: uri
+                        example: "https://example.com/profile_pictures/user1.jpg"
+        '401':
+          description: Authentication credentials were not provided or are invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+components:
+  schemas:
+    BasePropertySchema:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          example: 1
+        name:
+          type: string
+          nullable: true
+          example: "Charming Colonial House"
+        address:
+          type: string
+          nullable: true
+          example: "123 Main St, Anytown, AT 12345"
+        listing_id:
+          type: integer
+          nullable: true
+          example: 789012
+        city:
+          type: string
+          nullable: true
+          example: "Anytown"
+        county_or_parish:
+          type: string
+          nullable: true
+          example: "AnyCounty"
+        state_or_province:
+          type: string
+          nullable: true
+          example: "AT"
+        zip_code:
+          type: string
+          nullable: true
+          example: "12345"
+        image:
+          type: string
+          format: url
+          nullable: true
+          example: "https://imagecdn.realty.com/photos/red/379520006/1.jpg"
+        price:
+          type: integer
+          nullable: true
+          example: 450000
+        no_of_beds:
+          type: integer
+          nullable: true
+          example: 3
+        no_of_baths:
+          type: integer
+          nullable: true
+          example: 2
+        square_feet_size:
+          type: integer
+          nullable: true
+          example: 1800
+        additional_information:
+          type: string
+          nullable: true
+          example: "Recently renovated kitchen and bathrooms."
+        tag:
+          type: string
+          nullable: true
+          example: "Hot Property"
+        open_house_time:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2024-07-20T14:00:00Z"
+        deadline_datetime:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2024-08-01T17:00:00Z"
+        is_deadline_checked:
+          type: boolean
+          example: false
+        note:
+          type: string
+          nullable: true
+          example: "Client is very interested in this neighborhood."
+        redfin_url:
+          type: string
+          format: url
+          nullable: true
+          example: "https://redfin.com/AT/Anytown/123-Main-St-12345/home/1234567"
+        zillow_url:
+          type: string
+          format: url
+          nullable: true
+          example: "https://zillow.com/homedetails/123-Main-St-Anytown-AT-12345/1234567_zpid/"
+        latitude:
+          type: number
+          format: float
+          nullable: true
+          example: 35.665748596191
+        longitude:
+          type: number
+          format: float
+          nullable: true
+          example: -90.515518188477
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+          readOnly: true
+
+    PropertyDetailItemSchema:
+      type: object
+      properties:
+        open_house:
+          type: string
+          nullable: true
+          example: "Sat 2-4pm, Sun 1-3pm"
+        property_id:
+          type: integer
+          description: "The ID of the Property this detail record is associated with."
+          example: 1
+
+    PropertyListItemSchema:
+      allOf:
+        - $ref: '#/components/schemas/BasePropertySchema'
+      type: object
+      properties:
+        property_details:
+          type: array
+          items:
+            $ref: '#/components/schemas/PropertyDetailItemSchema'
+          readOnly: true
+        realtor_property_id:
+          type: integer
+          nullable: true
+          readOnly: true
+          description: "ID of the RealtorProperty entry if applicable for the current user context."
+          example: 101
+
+    PropertyListResponseDataSchema:
+      type: object
+      properties:
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/PropertyListItemSchema'
+        page:
+          type: integer
+          example: 1
+        has_next:
+          type: boolean
+          example: false
+        total:
+          type: integer
+          example: 25
+    PropertyOfferItemSchema:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date-time
+          example: "2024-07-15T10:30:00Z"
+        amount:
+          type: integer
+          example: 460000
+        offer:
+          type: string
+          example: "Initial strong offer with pre-approval."
+
+    DisclosureFileItemSchema:
+      type: object
+      properties:
+        file:
+          type: string
+          format: url
+          example: "/media/disclosures/somefile.pdf"
+
+    DisclosureItemSchema:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+          example: "Lead Paint Disclosure"
+        description:
+          type: string
+          nullable: true
+          example: "Standard lead paint disclosure form."
+        url:
+          type: string
+          format: url
+          nullable: true
+          example: "https://example.com/disclosures/leadpaint.pdf"
+        created_date:
+          type: string
+          format: date-time
+          readOnly: true
+          example: "2024-07-01T09:00:00Z"
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/DisclosureFileItemSchema'
+          readOnly: true
+
+    PropertyComparableItemSchema:
+      type: object
+      properties:
+        image:
+          type: string
+          format: url
+          nullable: true
+          example: "https://imagecdn.realty.com/photos/red/379520006/1.jpg"
+        address:
+          type: string
+          example: "456 Oak Ave, Anytown, AT 12345"
+        listingPrice:
+          type: integer
+          example: 440000
+        closingPrice:
+          type: integer
+          nullable: true
+          example: 435000
+        bedsCount:
+          type: integer
+          example: 3
+        bathsCount:
+          type: integer
+          example: 2
+        squareFeet:
+          type: integer
+          example: 1750
+        onMarket:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2024-05-10T10:00:00Z"
+        amountPerSqrFeet:
+          type: number
+          format: float
+          nullable: true
+          example: 248.57
+
+    OfferGraphSchema:
+      type: object
+      properties:
+        askedPrice:
+          type: integer
+          nullable: true
+          example: 450000
+        firstOffer:
+          type: integer
+          nullable: true
+          example: 430000
+        secondOffer:
+          type: integer
+          nullable: true
+          example: 445000
+        closingOffer:
+          type: integer
+          nullable: true
+          example: 460000
+
+    PropertyDetailsDataSchema: # Based on PropertyDetailsSerializer
+      allOf:
+        - $ref: '#/components/schemas/BasePropertySchema' # Inherits base property fields
+      type: object
+      properties:
+        # Fields from BasePropertySchema are inherited
+        # Overridden/Specific fields from PropertyDetailsSerializer:
+        open_house_time:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2024-07-20T14:00:00Z"
+        no_of_beds:
+          type: integer
+          nullable: true
+          example: 3
+        no_of_baths:
+          type: integer
+          nullable: true
+          example: 2
+        square_feet_size:
+          type: integer
+          nullable: true
+          example: 1800
+        zillowIntegration:
+          type: boolean
+          example: true
+        additional_information:
+          type: string
+          nullable: true
+          example: "Great school district, quiet street."
+        # New/Calculated fields:
+        photos_list:
+          type: array
+          items:
+            type: object
+            properties:
+              lowRes:
+                type: string
+                format: url
+              midRes:
+                type: string
+                format: url
+              highRes:
+                type: string
+                format: url
+          example:
+            - lowRes: "https://imagecdn.realty.com/photos/red/379520006/1.jpg?w=300"
+              midRes: "https://imagecdn.realty.com/photos/red/379520006/1.jpg?w=600"
+              highRes: "https://imagecdn.realty.com/photos/red/379520006/1.jpg?w=1200"
+            - lowRes: "https://imagecdn.realty.com/photos/red/379520006/2.jpg?w=300"
+              midRes: "https://imagecdn.realty.com/photos/red/379520006/2.jpg?w=600"
+              highRes: "https://imagecdn.realty.com/photos/red/379520006/2.jpg?w=1200"
+            - lowRes: "https://imagecdn.realty.com/photos/red/379520006/3.jpg?w=300"
+              midRes: "https://imagecdn.realty.com/photos/red/379520006/3.jpg?w=600"
+              highRes: "https://imagecdn.realty.com/photos/red/379520006/3.jpg?w=1200"
+        offers:
+          type: array
+          items:
+            $ref: '#/components/schemas/PropertyOfferItemSchema'
+        disclosure:
+          type: array
+          items:
+            $ref: '#/components/schemas/DisclosureItemSchema'
+        comparables:
+          type: array
+          items:
+            $ref: '#/components/schemas/PropertyComparableItemSchema'
+        offerGraph:
+          $ref: '#/components/schemas/OfferGraphSchema'
+    error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Error details
+        code:
+          type: string
+        message:
+          type: string
+        status:
+          type: integer
+        data:
+          type: object
+    UploadPdfsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: The PDF for the current year is being processed, while PDFs from other years have been stored as is.
+        status:
+          type: integer
+          example: 200
+        data:
+          type: object
+          properties:
+            task_id:
+              type: number
+      required:
+        - success
+        - message
+        - status
+        - data
+    CheckPdfsProcessingTaskResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: PDF task fetched successfully
+        status:
+          type: integer
+          example: 200
+        data:
+          type: object
+          properties:
+            result:
+              $ref: '#/components/schemas/ParsedPdfData'
+            status:
+              type: string
+      required:
+        - success
+        - message
+        - status
+        - data
+    ParsedPdfData:
+      type: object
+      properties:
+        tax_year_start:
+          type: string
+          example: '21'
+        tax_year_end:
+          type: string
+          example: '25, 2030'
+        first_name_middle_initial:
+          type: string
+          example: 'Test\n'
+        last_name:
+          type: string
+          example: 'User'
+        social_security_number:
+          type: string
+          nullable: true
+          example: null
+        spouse_first_name_middle_initial:
+          type: string
+          example: 'Parent test'
+        spouse_last_name:
+          type: string
+          example: 'user1'
+        spouse_social_security_number:
+          type: string
+          nullable: true
+          example: null
+        home_address:
+          type: string
+          example: '3641 N 55TH AVE'
+        apt_no:
+          type: string
+          nullable: true
+          example: null
+        city:
+          type: string
+          example: 'Hollywood'
+        state:
+          type: string
+          example: 'FL'
+        zip_code:
+          type: string
+          example: '33021'
+        foreign_country_name:
+          type: string
+          example: 'england'
+        foreign_province_state_county:
+          type: string
+          nullable: true
+          example: null
+        foreign_postal_code:
+          type: string
+          nullable: true
+          example: null
+        election_campaign_yes:
+          type: boolean
+          example: false
+        election_campaign_no:
+          type: boolean
+          example: true
+        filing_status_single:
+          type: boolean
+          example: true
+        filing_status_head_of_household:
+          type: boolean
+          example: false
+        filing_status_married_filing_jointly:
+          type: boolean
+          example: false
+        filing_status_married_filing_separately:
+          type: boolean
+          example: false
+        qualifying_surviving_spouse:
+          type: boolean
+          example: true
+        mfs_spouse_name_or_hoh_qss_child_name:
+          type: string
+          example: 'HOH'
+        digital_assets_yes:
+          type: boolean
+          example: false
+        digital_assets_no:
+          type: boolean
+          example: true
+        deduction_as_dependent:
+          type: boolean
+          example: true
+        deduction_your_spouse:
+          type: boolean
+          example: true
+        standard_deduction_spouse_itemizes:
+          type: boolean
+          example: false
+        age_blindness_before_jan_2_1959:
+          type: boolean
+          example: false
+        age_blindness_blind:
+          type: boolean
+          example: false
+        spouse_age_blindness_before_jan_2_1959:
+          type: boolean
+          example: false
+        spouse_age_blindness_blind:
+          type: boolean
+          example: false
+        dependents_more_than_four_check_here:
+          type: boolean
+          example: false
+        dependents_first_name_last_name_1:
+          type: string
+          example: 'User 1'
+        dependents_social_number_1:
+          type: string
+          example: '123456678'
+        dependents_relationship_1:
+          type: string
+          example: 'Parent'
+        dependents_child_tax_credit_1:
+          type: boolean
+          example: false
+        dependents_credit_for_other_dependents_1:
+          type: boolean
+          example: true
+        dependents_first_name_last_name_2:
+          type: string
+          example: 'User 2'
+        dependents_social_number_2:
+          type: string
+          example: '987643213'
+        dependents_relationship_2:
+          type: string
+          example: 'Sibling'
+        dependents_child_tax_credit_2:
+          type: boolean
+          example: true
+        dependents_credit_for_other_dependents_2:
+          type: boolean
+          example: false
+        dependents_first_name_last_name_3:
+          type: string
+          example: 'User 3'
+        dependents_social_number_3:
+          type: string
+          example: '654789098'
+        dependents_relationship_3:
+          type: string
+          example: 'Bro'
+        dependents_child_tax_credit_3:
+          type: boolean
+          example: false
+        dependents_credit_for_other_dependents_3:
+          type: boolean
+          example: true
+        dependents_first_name_last_name_4:
+          type: string
+          example: 'User 4'
+        dependents_social_number_4:
+          type: string
+          example: '345678543'
+        dependents_relationship_4:
+          type: string
+          example: 'Sister'
+        dependents_child_tax_credit_4:
+          type: boolean
+          example: true
+        dependents_credit_for_other_dependents_4:
+          type: boolean
+          example: false
+        income_w2_total_amount:
+          type: string
+          example: '25,000'
+        household_employee_wages_not_reported_on_w2:
+          type: string
+          nullable: true
+          example: null
+        tip_income_not_reported_on_line_1a:
+          type: string
+          nullable: true
+          example: null
+        medicaid_waiver_payments_not_reported_on_w2:
+          type: string
+          nullable: true
+          example: null
+        taxable_dependent_care_benefits:
+          type: string
+          nullable: true
+          example: null
+        employer_provided_adoption_benefits:
+          type: string
+          nullable: true
+          example: null
+        wages_from_form_8919:
+          type: string
+          nullable: true
+          example: null
+        other_earned_income:
+          type: string
+          nullable: true
+          example: null
+        nontaxable_combat_pay_election:
+          type: string
+          nullable: true
+          example: null
+        total_income_add_lines:
+          type: string
+          example: '25,000'
+        tax_exempt_interest:
+          type: string
+          example: '2a00'
+        taxable_interest:
+          type: string
+          nullable: true
+          example: null
+        qualified_dividends:
+          type: string
+          example: '3a00'
+        ordinary_dividends:
+          type: string
+          nullable: true
+          example: null
+        pensions_and_annuities:
+          type: string
+          example: '4a00'
+        taxable_amount_4b:
+          type: string
+          example: '6,754'
+        ira_distributions:
+          type: string
+          example: '5a00'
+        taxable_amount_5b:
+          type: string
+          nullable: true
+          example: null
+        social_security_benefits:
+          type: string
+          example: '6a00'
+        taxable_amount_6b:
+          type: string
+          nullable: true
+          example: null
+        lump_sum_election_method_check_here:
+          type: boolean
+          example: false
+        capital_gain_or_loss_check_here:
+          type: boolean
+          example: false
+        capital_gain_or_loss_input:
+          type: string
+          example: '86,486'
+        additional_income_schedule_1_line_10:
+          type: string
+          example: '103,340'
+        total_income_add_lines_1z_to_8:
+          type: string
+          example: '221,580'
+        adjustments_to_income_schedule_1_line_26:
+          type: string
+          example: '0'
+        adjusted_gross_income_subtract_line_10_from_9:
+          type: string
+          example: '221,580'
+        standard_deduction_or_itemized_deductions:
+          type: string
+          example: '25,900'
+        qualified_business_income_deduction:
+          type: string
+          example: '21,839'
+        add_lines_12_and_13:
+          type: string
+          example: '47,739'
+        taxable_income_subtract_line_14_from_11:
+          type: string
+          example: '173,841'
+        tax_check_if_any_from_forms_1:
+          type: boolean
+          example: false
+        tax_check_if_any_from_forms_2:
+          type: boolean
+          example: true
+        tax_check_if_any_from_forms_3:
+          type: boolean
+          example: false
+        tax_from_forms_input_1:
+          type: string
+          nullable: true
+          example: null
+        tax_from_forms_input_2:
+          type: string
+          example: '1600'
+        amount_from_schedule_2_line_3:
+          type: string
+          example: '1700'
+        total_tax_add_lines_16_and_17:
+          type: string
+          example: '1800'
+        child_tax_credit_from_schedule_8812:
+          type: string
+          example: '1900'
+        amount_from_schedule_3_line_8:
+          type: string
+          example: '2000'
+        total_other_payments_and_refundable_credits:
+          type: string
+          example: '2100'
+        subtract_line_21_from_18:
+          type: string
+          example: '2200'
+        other_taxes_including_self_employment_tax:
+          type: string
+          example: '2300'
+        total_tax_add_lines_22_and_23:
+          type: string
+          example: '2400'
+        federal_income_tax_withheld_from_w2:
+          type: string
+          example: '25a00'
+        federal_income_tax_withheld_from_1099:
+          type: string
+          example: '25b00'
+        federal_income_tax_withheld_from_other_forms:
+          type: string
+          example: '25c00'
+        federal_income_tax_withheld_total:
+          type: string
+          example: '25d00'
+        estimated_tax_payments_and_amount:
+          type: string
+          example: '2600'
+        earned_income_credit_eic:
+          type: string
+          example: '2700'
+        additional_child_tax_credit_from_schedule_8812:
+          type: string
+          example: '2800'
+        american_opportunity_credit_from_form_8863:
+          type: string
+          example: '2900'
+        reserved_for_future_use:
+          type: string
+          nullable: true
+          example: null
+        amount_from_schedule_3_line_15:
+          type: string
+          example: '3100'
+        total_payments_add_lines_27_to_32:
+          type: string
+          nullable: true
+          example: null
+        total_payments_add_lines_25d_26_32:
+          type: string
+          example: '3300'
+        overpaid_amount_subtract_line_24_from_33:
+          type: string
+          example: '3400'
+        amount_of_line_34_want_refunded:
+          type: boolean
+          example: false
+        amount_of_line_34_want_refunded_input:
+          type: string
+          example: '35a00'
+        refund_routing_number:
+          type: string
+          example: '888888888'
+        refund_checking:
+          type: boolean
+          example: false
+        refund_saving:
+          type: boolean
+          example: true
+        refund_account_number:
+          type: string
+          example: '77777777777777777'
+        refund_amount_applied_to_2024_estimated_tax:
+          type: string
+          example: '3600'
+        amount_you_owe:
+          type: string
+          nullable: true
+          example: null
+        estimated_tax_penalty:
+          type: string
+          example: '3800'
+        third_party_designee_yes:
+          type: boolean
+          example: false
+        third_party_designee_no:
+          type: boolean
+          example: false
+        third_party_designee_name:
+          type: string
+          example: 'designer name'
+        third_party_designee_phone:
+          type: string
+          example: '92341122343'
+        third_party_designee_pin:
+          type: string
+          nullable: true
+          example: null
+        your_occupation:
+          type: string
+          example: '343423'
+        identity_protection_pin:
+          type: string
+          example: '233455'
+        spouse_occupation:
+          type: string
+          example: '123445'
+        spouse_identity_protection_pin:
+          type: string
+          example: '123455'
+        phone_no:
+          type: string
+          example: '323434'
+        email:
+          type: string
+          nullable: true
+          example: null
+        preparer_name:
+          type: string
+          example: 'prepare name'
+        ptin:
+          type: string
+          example: 'ptni'
+        self_employed:
+          type: boolean
+          example: true
+        paid_preparer_firm_name:
+          type: string
+          example: 'firm name'
+        paid_preparer_use_phone_no.:
+          type: string
+          example: '923432344'
+        paid_preparer_use_firm_address:
+          type: string
+          example: 'address'
+        paid_preparer_use_firm_EIN:
+          type: string
+          example: '1234'
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Request is invalid.
+        code:
+          type: string
+          example: request_invalid
+        status:
+          type: integer
+          example: 400
+        data:
+          type: object
+          properties:
+            pdfs:
+              type: array
+              items:
+                type: string
+              example:
+                - Only PDF files are allowed.
+      required:
+        - success
+        - message
+        - code
+        - status
+        - data
+  securitySchemes:
+    auth_key:
+      name: X-Authorization
+      type: apiKey
+      in: header
+      description: ''
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "John Doe"
+        email:
+          type: string
+          format: email
+          example: "john@example.com"
+        phone:
+          type: string
+          example: "+1234567890"
+        company:
+          type: string
+          example: "NestHub"
+        license_id:
+          type: string
+          example: "123456"
+        user_type:
+          type: string
+          enum: [agent, client]
+          example: "agent"
+        address:
+          type: string
+          example: "123 Main St"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-03-20T10:00:00Z"
+        profile_pic:
+          type: string
+          example: "/uploads/profile.jpg"
+        agent:
+          type: object
+          properties:
+            name:
+              type: string
+              example: "John Doe"
+            license_id:
+              type: string
+              example: "123456"
