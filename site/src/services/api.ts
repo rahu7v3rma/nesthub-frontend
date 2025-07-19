@@ -1,5 +1,7 @@
 import axios, { AxiosError } from 'axios';
 
+import { PaymentHistory, PaymentMethod } from '@/app/billing/page';
+import { UpdatePropertyPayload } from '@/interfaces/property';
 import {
   AUTHORIZATION_HEADER_NAME,
   constructAuthorizationHeaderValue,
@@ -22,6 +24,10 @@ const API_END_POINT = {
   RESET_PASSWORD_CONFIRM: 'user/reset/confirm',
   SET_PASSWORD_VERIFY: 'user/set-password/verify',
   SET_PASSWORD_CONFIRM: 'user/set-password/confirm',
+  CREATE_CHECKOUT: 'user/create-checkout',
+  CANCEL_SUBSCRIPTION: 'user/cancel-subscription',
+  PAYMENT_METHODS: 'user/payment-methods',
+  PAYMENT_HISTORY: 'user/payment-history',
   VERIFY_OTP: 'otp/verify',
   SEND_OTP: 'otp/send',
   PROPERTY_DETAILS: 'properties/details',
@@ -38,11 +44,12 @@ const API_END_POINT = {
   CHANGE_PASSWORD: 'user/change-password',
   DELETE_COMPARABLE: (propertyId: number, comparableId: number) =>
     `properties/${propertyId}/comparable/${comparableId}`,
-  DELETE_OFFER: (propertyId: number, offerId: number) =>
-    `properties/${propertyId}/offer/${offerId}`,
+  DELETE_OFFER: (offerId: number) => `properties/offer/${offerId}`,
   UPDATE_RATING: (propertyId: number) => `properties/${propertyId}/rate`,
   UPDATE_TOURED: (propertyId: number) =>
     `properties/${propertyId}/update-tour-status`,
+  UPDATE_PROPERTY: (propertyId: number) => `properties/${propertyId}/`,
+  UPDATE_PROPERTY_OFFER: (offerId: number) => `properties/offer/${offerId}`,
 };
 
 type API_METHOD = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
@@ -59,6 +66,7 @@ interface BaseClientData {
   email: string;
   phone: string;
   is_active?: boolean;
+  is_email_verified?: boolean;
 }
 
 interface ClientMemberData extends BaseClientData {
@@ -90,6 +98,7 @@ export interface ClientListItem {
   phone: string;
   property_count: number;
   last_activity: string;
+  is_active: boolean;
 }
 
 export interface ClientListResponse {
@@ -215,7 +224,7 @@ export function getPropertyListing({
   limit = 12,
   signal,
   user_id,
-  sort = '',
+  sort = 'price_ASC',
 }: {
   search?: string;
   page?: number;
@@ -350,6 +359,18 @@ export const resetPassword = (email: string) => {
   );
 };
 
+export const createCheckout = (planType: string) => {
+  return authorizedRequest(API_END_POINT.CREATE_CHECKOUT, 'POST', {
+    plan_type: planType,
+    success_url: `${window.location.origin}/billing?success=true`,
+    cancel_url: `${window.location.origin}/billing?success=false`,
+  });
+};
+
+export const cancelSubscription = () => {
+  return authorizedRequest(API_END_POINT.CANCEL_SUBSCRIPTION, 'POST');
+};
+
 export const resetPasswordVerify = (token: string) => {
   return baseRequest(API_END_POINT.RESET_PASSWORD_VERIFY, 'POST', {
     token,
@@ -427,6 +448,14 @@ export const getClientDetails = (
 
 export const getClientMembers = (): Promise<ClientDetailResponseData> => {
   return authorizedRequest(API_END_POINT.CLIENT_MEMBERS, 'GET');
+};
+
+export const getPaymentMethods = (): Promise<PaymentMethod[]> => {
+  return authorizedRequest(API_END_POINT.PAYMENT_METHODS, 'GET');
+};
+
+export const getPaymentHistory = (): Promise<PaymentHistory[]> => {
+  return authorizedRequest(API_END_POINT.PAYMENT_HISTORY, 'GET');
 };
 
 export const deleteClientMember = (
@@ -539,20 +568,32 @@ export const deleteClient = (clientId: string): Promise<any> => {
   return authorizedRequest(`${API_END_POINT.CLIENTS}/${clientId}`, 'DELETE');
 };
 
+export const reinviteClient = (clientId: string): Promise<any> => {
+  return authorizedRequest(
+    `${API_END_POINT.CLIENTS}/${clientId}/reinvite`,
+    'POST',
+  );
+};
+
 export const addProperty = (payload: {}) => {
   return authorizedRequest(`${API_END_POINT.ADD_PROPERTY}`, 'POST', payload);
+};
+
+export const updateProperty = (payload: UpdatePropertyPayload) => {
+  return authorizedRequest(
+    `${API_END_POINT.UPDATE_PROPERTY(payload.id)}`,
+    'PUT',
+    payload,
+  );
 };
 
 export const addOffer = (payload: {}) => {
   return authorizedRequest(`${API_END_POINT.ADD_OFFER}`, 'POST', payload);
 };
 
-export const deleteOffer = (
-  propertyId: number,
-  OfferId: number,
-): Promise<any> => {
+export const deleteOffer = (offerId: number): Promise<any> => {
   return authorizedRequest(
-    API_END_POINT.DELETE_OFFER(propertyId, OfferId),
+    API_END_POINT.DELETE_OFFER(offerId),
     'DELETE',
     undefined,
     undefined,
@@ -655,6 +696,22 @@ export const updatePropertyToured = (
     {
       is_property_toured: is_property_toured,
     },
+    undefined,
+    undefined,
+    true,
+  );
+};
+
+export const updatePropertyOffer = (
+  offerId: number,
+  updateData: {
+    offer_status: 'accepted' | 'rejected' | 'pending';
+  },
+): Promise<any> => {
+  return authorizedRequest(
+    API_END_POINT.UPDATE_PROPERTY_OFFER(offerId),
+    'POST',
+    updateData,
     undefined,
     undefined,
     true,

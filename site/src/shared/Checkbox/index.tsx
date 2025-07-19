@@ -6,6 +6,8 @@ type Props = {
   value: boolean;
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
   name: string;
+  checkedColor?: string;
+  rounded?: string;
 };
 
 const Checkbox: FunctionComponent<Props> = ({
@@ -13,6 +15,8 @@ const Checkbox: FunctionComponent<Props> = ({
   value,
   onChange,
   name,
+  checkedColor = '#ED6943',
+  rounded = 'rounded-full',
 }: Props) => {
   return (
     <label className="flex items-center cursor-pointer">
@@ -24,9 +28,10 @@ const Checkbox: FunctionComponent<Props> = ({
         className="hidden"
       />
       <div
-        className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${
-          value ? 'bg-[#ED6943]' : 'bg-[#E5E5E5]'
-        }`}
+        className={`w-5 h-5 flex items-center justify-center transition-colors ${rounded}`}
+        style={{
+          backgroundColor: value ? checkedColor : '#E5E5E5',
+        }}
       >
         {value && (
           <Image

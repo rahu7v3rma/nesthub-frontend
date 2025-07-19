@@ -48,19 +48,17 @@ export function LikedPropertiesSection({
     return () => {
       controller.abort();
     };
-  }, []);
+  }, [clientId]);
 
   const handleViewClientProperties = () => {
     localStorage.setItem('clientId', clientId);
+    localStorage.removeItem('properties_page');
   };
 
   return (
     <div className="mt-12">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-800">
-          {' '}
-          Liked properties{' '}
-        </h2>
+        <h2 className="text-xl font-semibold text-gray-800"> Properties </h2>
         <Link href={`/properties`} className="text-sm">
           <Button
             size="lg"

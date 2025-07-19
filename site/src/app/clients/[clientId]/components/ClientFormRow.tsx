@@ -35,7 +35,9 @@ export function ClientFormRow({
         <div className="w-full md:flex-1">
           <Input
             label={
-              isParent ? 'Primary First Name' : `Member ${index} First Name`
+              isParent
+                ? 'Primary First Name'
+                : `Relationship ${index} First Name`
             }
             className="!bg-[#F9F9F9] !rounded-[48px] w-full h-[48px] !border-none px-4"
             lableClass="text-[#A8A6B0] font-normal text-sm mb-1 ml-4"
@@ -58,7 +60,9 @@ export function ClientFormRow({
         </div>
         <div className="w-full md:flex-1">
           <Input
-            label={isParent ? 'Primary Last Name' : `Member ${index} Last Name`}
+            label={
+              isParent ? 'Primary Last Name' : `Relationship ${index} Last Name`
+            }
             className="!bg-[#F9F9F9] !rounded-[48px] w-full h-[48px] !border-none px-4"
             lableClass="text-[#A8A6B0] font-normal text-sm mb-1 ml-4"
             onChange={handleChange}
@@ -80,7 +84,7 @@ export function ClientFormRow({
         </div>
         <div className="w-full md:flex-1">
           <Input
-            label={isParent ? 'Primary Email' : `Member ${index} Email`}
+            label={isParent ? 'Primary Email' : `Relationship ${index} Email`}
             type="email"
             className="!bg-[#F9F9F9] !rounded-[48px] w-full h-[48px] !border-none px-4"
             lableClass="text-[#A8A6B0] font-normal text-sm mb-1 ml-4"
@@ -104,7 +108,7 @@ export function ClientFormRow({
             label={
               isParent
                 ? 'Primary Phone (Optional)'
-                : `Member ${index} Phone (Optional)`
+                : `Relationship ${index} Phone (Optional)`
             }
             type="tel"
             className="!bg-[#F9F9F9] !rounded-[48px] w-full h-[48px] !border-none px-4"
@@ -133,7 +137,7 @@ export function ClientFormRow({
             type="button"
             onClick={() => onDeleteMember(index, client.id)}
             className={`flex items-center justify-center bg-[#F6F6F6] font-bold text-2xl leading-[30px] rounded-full w-[48px] h-[48px] flex-shrink-0 text-gray-600 cursor-pointer hover:bg-red-100 hover:text-red-600 disabled:opacity-50 disabled:cursor-not-allowed ${isDeleting ? 'animate-pulse' : ''}`}
-            title="Remove Member"
+            title="Remove Relationship"
             disabled={isDeleting || isFormLoading}
           >
             {isDeleting ? (
@@ -162,7 +166,7 @@ export function ClientFormRow({
                 height={20}
                 width={20}
                 src="/svgs/delete-black.svg"
-                alt="Remove Member"
+                alt="Remove Relationship"
               />
             )}
           </button>

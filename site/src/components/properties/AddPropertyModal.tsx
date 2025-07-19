@@ -16,7 +16,7 @@ import {
   Textarea,
   TimeInput,
 } from '@heroui/react';
-import { today } from '@internationalized/date';
+import { parseDate, today } from '@internationalized/date';
 import { ErrorMessage, Field, Form, Formik } from 'formik';
 import { useCallback, useEffect, useState } from 'react';
 import { FaRegClock } from 'react-icons/fa';
@@ -24,12 +24,12 @@ import { toast } from 'react-toastify';
 import * as Yup from 'yup';
 
 import { useRealEstate } from '@/hooks/useRealEstate';
-import { Property } from '@/interfaces/property';
+import { Property, UpdatePropertyPayload } from '@/interfaces/property';
 import {
   MLSDetailResponse,
   MLSDetailPropertyResponse,
 } from '@/interfaces/realEstateApi';
-import { addProperty } from '@/services/api';
+import { addProperty, updateProperty } from '@/services/api';
 import TimePicker from '@/shared/TimePicker/TimePicker';
 
 type AddPropertyModalProps = {
@@ -37,6 +37,14 @@ type AddPropertyModalProps = {
   onOpenChange: () => void;
   onClose: () => void;
   onAdd: () => void;
+  mode?: 'add' | 'edit';
+  propertyId?: number | null;
+  initialEditValues?: {
+    isDeadlineChecked?: boolean;
+    deadlineDate?: string | null;
+    deadlineTime?: string | null;
+    note?: string;
+  };
 };
 
 type Location = {
@@ -51,13 +59,34 @@ export default function AddPropertyModal({
   onOpenChange,
   onClose,
   onAdd,
+  mode = 'add',
+  propertyId,
+  initialEditValues = {
+    isDeadlineChecked: false,
+    deadlineDate: null,
+    deadlineTime: null,
+    note: '',
+  },
 }: AddPropertyModalProps) {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [selectedProperty, setSelectedProperty] = useState<any>({});
   const [userType, setUserType] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
   const PropertySchema = Yup.object().shape({
     address: Yup.string().required('Please enter address'),
+  });
+
+  const EditSchema = Yup.object().shape({
+    note: Yup.string(),
+    deadlineDate: Yup.string().when('isDeadlineChecked', {
+      is: (isDeadlineChecked: boolean) => !isDeadlineChecked,
+      then: (schema) => schema.required('Deadline date is required'),
+    }),
+    deadlineTime: Yup.string().when('isDeadlineChecked', {
+      is: (isDeadlineChecked: boolean) => !isDeadlineChecked,
+      then: (schema) => schema.required('Deadline time is required'),
+    }),
   });
 
   const { getMLSDetail, getMLSSearch, loading, addLoading, error } =
@@ -69,13 +98,15 @@ export default function AddPropertyModal({
       setUserType(storedUserType);
     }
     handleAddPropertyLocation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (isOpen) {
-      handleSearch(); // Trigger location-based search
+    if (isOpen && mode === 'add') {
+      handleSearch();
     }
-  }, [isOpen]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, mode]);
 
   const getLocation = (): Promise<Location> => {
     return new Promise((resolve, reject) => {
@@ -131,7 +162,7 @@ export default function AddPropertyModal({
       };
       localStorage.setItem('userLocation', JSON.stringify(getlocation));
     } catch (err: any) {
-      console.log(err.message);
+      console.error(err.message);
     } finally {
       setIsLoading(false);
     }
@@ -207,6 +238,52 @@ export default function AddPropertyModal({
     [onClose, onAdd, selectedProperty, getMLSDetail],
   );
 
+  const handleEditSubmit = useCallback(
+    async (values: {
+      deadlineDate?: string | null;
+      deadlineTime?: string | null;
+      isDeadlineChecked: boolean;
+      note?: string;
+    }) => {
+      if (!propertyId) {
+        toast.error('Property ID is missing');
+        return;
+      }
+
+      let deadline_datetime: string | null = null;
+
+      if (
+        !values.isDeadlineChecked &&
+        values.deadlineDate &&
+        values.deadlineTime
+      ) {
+        deadline_datetime = `${values.deadlineDate}T${values.deadlineTime}`;
+      }
+
+      const payload: UpdatePropertyPayload = {
+        id: propertyId,
+        ...(!values.isDeadlineChecked && { deadline_datetime }),
+        is_deadline_checked: values.isDeadlineChecked,
+        note: values.note?.trim() === '' ? null : values.note || undefined,
+      };
+
+      try {
+        await updateProperty(payload);
+        onClose();
+        onAdd();
+        setSelectedProperty({});
+        toast.success('Property updated successfully');
+      } catch (err: any) {
+        onClose();
+        setSelectedProperty({});
+        toast.error(
+          err.data?.message ? err.data.message : 'Failed to update property',
+        );
+      }
+    },
+    [onClose, onAdd, propertyId],
+  );
+
   const handleSearch = useCallback(
     async (searchQuery?: string) => {
       try {
@@ -233,7 +310,7 @@ export default function AddPropertyModal({
               latitude: locationData.latitude,
               longitude: locationData.longitude,
             };
-        console.log('searchParams:', searchParams);
+
         const response = (await getMLSSearch(
           searchParams,
         )) as MLSDetailResponse;
@@ -300,24 +377,10 @@ export default function AddPropertyModal({
         {(onClose) => (
           <>
             <ModalHeader className="justify-center text-2xl text-primary">
-              Add Property
+              {mode === 'add' ? 'Add Property' : 'Edit Property'}
             </ModalHeader>
             <ModalBody>
-              <>
-                {/* <Tabs
-                  color="primary"
-                  radius="full"
-                  size="lg"
-                  classNames={{
-                    base: 'justify-center',
-                    tabList: 'p-0 gap-0',
-                    tab: 'h-12 text-sm',
-                  }}
-                >
-                  <Tab key="address" title="Type Address">
-                  </Tab>
-                  <Tab key="link" title="Link Property"></Tab>
-                </Tabs> */}
+              {mode === 'add' ? (
                 <div className="p-3">
                   <Formik
                     initialValues={{
@@ -463,7 +526,98 @@ export default function AddPropertyModal({
                     )}
                   </Formik>
                 </div>
-              </>
+              ) : (
+                <div className="p-3">
+                  <Formik
+                    initialValues={{
+                      isDeadlineChecked:
+                        initialEditValues.isDeadlineChecked || false,
+                      deadlineDate: initialEditValues.deadlineDate || null,
+                      deadlineTime: initialEditValues.deadlineTime || null,
+                      note: initialEditValues.note || '',
+                    }}
+                    validationSchema={EditSchema}
+                    onSubmit={handleEditSubmit}
+                  >
+                    {({ values, setFieldValue }) => (
+                      <Form>
+                        {userType === 'realtor' && (
+                          <>
+                            <Field name="isDeadlineChecked">
+                              {({ field }: any) => (
+                                <Checkbox
+                                  className="my-1"
+                                  {...field}
+                                  isSelected={field.value}
+                                >
+                                  No offer deadline
+                                </Checkbox>
+                              )}
+                            </Field>
+                            {!values.isDeadlineChecked && (
+                              <div className="flex flex-col md:flex-row gap-4 w-full">
+                                <DatePicker
+                                  name="deadlineDate"
+                                  label="Deadline date"
+                                  labelPlacement="outside"
+                                  size="lg"
+                                  radius="full"
+                                  defaultValue={
+                                    initialEditValues.deadlineDate
+                                      ? parseDate(
+                                          initialEditValues.deadlineDate,
+                                        )
+                                      : today('UTC').add({ days: 1 })
+                                  }
+                                  isDateUnavailable={(date) =>
+                                    date.compare(today('UTC')) < 0
+                                  }
+                                  onChange={(value) =>
+                                    setFieldValue(
+                                      'deadlineDate',
+                                      value && value.toString(),
+                                    )
+                                  }
+                                />
+                                <TimePicker
+                                  value={values.deadlineTime}
+                                  onChange={(value) =>
+                                    setFieldValue('deadlineTime', value)
+                                  }
+                                />
+                              </div>
+                            )}
+                            <Divider className="my-2" />
+                            <Field name="note">
+                              {({ field }: any) => (
+                                <Textarea
+                                  label="Notes for the client"
+                                  labelPlacement="outside"
+                                  placeholder="Notes"
+                                  rows={4}
+                                  disableAutosize
+                                  size="lg"
+                                  radius="full"
+                                  {...field}
+                                />
+                              )}
+                            </Field>
+                          </>
+                        )}
+                        <Button
+                          type="submit"
+                          color="primary"
+                          size="lg"
+                          radius="full"
+                          className="w-full mt-4"
+                        >
+                          <span>Save Changes</span>
+                        </Button>
+                      </Form>
+                    )}
+                  </Formik>
+                </div>
+              )}
             </ModalBody>
           </>
         )}

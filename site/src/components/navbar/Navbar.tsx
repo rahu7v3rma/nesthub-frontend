@@ -13,11 +13,10 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { FaChevronDown } from 'react-icons/fa';
-import { FiUsers } from 'react-icons/fi';
 
 import { ROUTES } from '@/constants';
+import useDeviceType from '@/hooks/useDeviceType';
 
-import MenuIcon from './menuIcon';
 import ProfileDropdown from './ProfileDropdown';
 
 const { otpVerification, signin, signup, resetPassword, verifyAccount } =
@@ -36,25 +35,13 @@ export default function AppNavbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [isRealEstateUser, setIsRealEstateUser] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const { isMobile } = useDeviceType();
 
   useEffect(() => {
     setIsClient(true);
     const userType = localStorage.getItem('user_type');
     setIsRealEstateUser(userType === 'realtor');
   }, []);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-      const userType = localStorage.getItem('user_type');
-      setIsRealEstateUser(userType === 'realtor');
-    };
-
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  });
 
   if (publicRoutes.includes(pathname)) {
     return null;

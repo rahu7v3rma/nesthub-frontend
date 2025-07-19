@@ -22,7 +22,7 @@ const Offer: FunctionComponent<Props> = ({
 
   return (
     <span className="bg-[#FFFFFFB2] rounded-[115px] flex items-center justify-center p-[10px]">
-      <label className="text-[8px] font-semibold text-[#5E5E61] uppercase">
+      <label className="text-[8px] font-semibold whitespace-nowrap text-[#5E5E61] uppercase">
         {' '}
         {offer_type == 'user' ? 'Offered' : 'Last offer'}
       </label>

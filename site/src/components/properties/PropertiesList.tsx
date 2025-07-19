@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 
+import useDeviceType from '@/hooks/useDeviceType';
 import { Property, PropertyListResponse } from '@/interfaces/property';
 import Pagination from '@/shared/Pagination';
 
@@ -23,21 +24,14 @@ export default function PropertiesList({
   setLayout,
   onPageChange,
 }: PropertiesListProps) {
+  const { isTablet, isMobile } = useDeviceType();
+
   useEffect(() => {
-    const handleResize = () => {
-      const screenWidth = window.innerWidth;
-      if (screenWidth < 1024) {
-        setLayout && setLayout('grid');
-        localStorage.setItem('properties_list_layout', 'grid');
-      }
-    };
-
-    handleResize();
-
-    window.addEventListener('resize', handleResize);
-
-    return () => window.removeEventListener('resize', handleResize);
-  });
+    if (isTablet || isMobile) {
+      setLayout?.('grid');
+      localStorage.setItem('properties_list_layout', 'grid');
+    }
+  }, [isTablet, isMobile, setLayout]);
 
   if (filteredProperties.length === 0) {
     return (
@@ -49,12 +43,12 @@ export default function PropertiesList({
 
   return (
     <>
-      <div className="max-h-[70vh] overflow-scroll">
+      <div>
         {layout === 'list' ? (
           <section className="mt-4 flex flex-col gap-4">
             {filteredProperties.map((property) => (
               <div key={property.id} className="border-b py-2">
-                <PropertyTable property={property} />
+                <PropertyTable property={property} layout={layout} />
               </div>
             ))}
           </section>

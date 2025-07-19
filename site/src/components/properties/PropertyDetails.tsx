@@ -11,16 +11,18 @@ import {
   Checkbox,
 } from '@heroui/react';
 import moment from 'moment';
+import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { BsChatTextFill } from 'react-icons/bs';
 import { FaLocationDot } from 'react-icons/fa6';
+import { MdEdit } from 'react-icons/md';
 import { toast } from 'react-toastify';
 
+import useDeviceType from '@/hooks/useDeviceType';
 import { PropertyDetails as IPropertyDetails } from '@/interfaces/property';
 import { updatePropertyRating, updatePropertyToured } from '@/services/api';
-import LeafletMap from '@/shared/Map';
 import { StarRating } from '@/shared/StarRating/StarRating';
 import { formatPrice, formatQuantity } from '@/utils/format';
 
@@ -29,7 +31,16 @@ import PropertyComparables from '../property/PropertyComparables';
 import PropertyDisclosures from '../property/PropertyDisclosures';
 import PropertyOffers from '../property/PropertyOffers';
 
+import AddPropertyModal from './AddPropertyModal';
 import PropertyImagesSwiper from './PropertyImagesSwiper';
+
+// dynamically import the shared map component without rendering on the server
+// side, otherwise we fail to run this code once it is built due to an issue
+// with the underlying leaflet library -
+// https://github.com/PaulLeCam/react-leaflet/issues/1152
+const LeafletMap = dynamic(() => import('@/shared/Map'), {
+  ssr: false,
+});
 
 type PropertyDetailsProps = {
   property: IPropertyDetails;
@@ -43,7 +54,7 @@ export default function PropertyDetails({
   reloadPropertyDetails,
 }: PropertyDetailsProps) {
   const router = useRouter();
-  const [isMobile, setIsMobile] = useState(false);
+  const { isMobile } = useDeviceType();
   const [displayRating, setDisplayRating] = useState(
     property.property_rating ? property.property_rating.toFixed(1) : '0',
   );
@@ -57,46 +68,22 @@ export default function PropertyDetails({
   );
   const [windowHeight, setWindowHeight] = useState(window.innerHeight);
   const { isOpen, onOpen, onClose, onOpenChange } = useDisclosure();
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
     const userType = localStorage.getItem('user_type');
     setIsRealEstateUser(userType === 'realtor');
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  });
-
-  useEffect(() => {
-    const handleResize = () => {
-      const newHeight = window.innerHeight;
-      if (newHeight !== windowHeight) {
-        setWindowHeight(newHeight);
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [windowHeight]);
-
-  useEffect(() => {
-    const userType = localStorage.getItem('user_type');
     if (userType === 'realtor') {
       setIsClientUser(true);
     }
-  });
+  }, []);
 
   const handleDisclosureSuccessfullyAdded = useCallback(() => {
     flag((prev) => !prev);
-    console.log('PropertyDetails: Signalling PropertyPage to refetch data.');
   }, [flag]);
 
   const handleComparableSuccessfullyAdded = useCallback(() => {
     flag((prev) => !prev);
-    console.log('PropertyDetails: Signalling PropertyPage to refetch data.');
   }, [flag]);
 
   if (!property) {
@@ -117,7 +104,6 @@ export default function PropertyDetails({
       const PropertyId = Number(realtor_property_id);
       await updatePropertyRating(PropertyId, rating);
       toast.success('Rating saved successfully');
-      console.log('Rating saved successfully');
       reloadPropertyDetails();
     } catch (error) {
       console.error('Failed to save rating:', error);
@@ -151,6 +137,20 @@ export default function PropertyDetails({
 
   return (
     <>
+      <AddPropertyModal
+        isOpen={editModalOpen}
+        onOpenChange={() => setEditModalOpen(false)}
+        onClose={() => setEditModalOpen(false)}
+        onAdd={reloadPropertyDetails}
+        mode="edit"
+        propertyId={Number(property.id) || null}
+        initialEditValues={{
+          isDeadlineChecked: property.is_deadline_checked,
+          deadlineDate: property.deadline_datetime?.split('T')[0] || null,
+          deadlineTime: property.deadline_datetime?.split('T')[1] || null,
+          note: property.note || '',
+        }}
+      />
       <div className="flex flex-col gap-4">
         <Card className="p-4 rounded-none sm:rounded-3xl md:my-3">
           <CardBody>
@@ -168,10 +168,21 @@ export default function PropertyDetails({
                       alt="Back"
                     />
                   </button>
-                  <p className="text-lg font-[600] text-[#2D2C31] flex items-center font-[Figtree]">
-                    {property.address}
-                    {property.city && `, ${property.city}`}
-                  </p>
+                  <div className="flex gap-4">
+                    <p className="text-lg font-[600] text-[#2D2C31] flex items-center font-[Figtree]">
+                      {property.address}
+                      {property.city && `, ${property.city}`}
+                    </p>
+                    {isRealEstateUser && (
+                      <button
+                        className="p-1 bg-[#F9F9F9] hover:bg-[#F0F0F0] rounded-full transition-colors"
+                        aria-label="Edit property"
+                        onClick={() => setEditModalOpen(true)}
+                      >
+                        <MdEdit size={24} className="rounded-full" />
+                      </button>
+                    )}
+                  </div>
                 </div>
                 {property.photos_list && property.photos_list.length > 0 ? (
                   <PropertyImagesSwiper
@@ -194,7 +205,7 @@ export default function PropertyDetails({
                   </>
                 )}
                 <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-4 sm:gap-8 mt-4 sm:mt-8">
-                  <div className="flex-shrink-0">
+                  <div className="w-full lg:w-[280px] lg:basis-2/5">
                     <p className="font-[700] text-[28px] text-[#2D2C31] font-[Almarai]">
                       {formatPrice(property.price)}
                     </p>
@@ -230,14 +241,14 @@ export default function PropertyDetails({
                       </div>
                     </div>
                   </div>
-                  <div className="flex gap-2 w-full sm:w-auto">
+                  <div className="flex gap-2 w-full sm:w-auto flex-1">
                     {property.offers && property.offers.length > 0 ? (
                       <Card className="sm:p-2 shadow-none border-1 bg-cardBg border-cardBorder flex-1">
                         <CardBody className="flex justify-center">
-                          <h3 className="text-[16px] font-[700] text-[#2D2C31] font-[Figtree]">
+                          <h3 className="sm:text-[16px] text-[12px] font-[700] text-[#2D2C31] font-[Figtree]">
                             Your Offer
                           </h3>
-                          <p className="text-[10.5px] mt-2 text-[#5E5E61] font-[700] font-[Figtree]">
+                          <p className="text-sm text-[#5E5E61] font-[700] font-[Figtree]">
                             {formatPrice(
                               property.offers[property.offers.length - 1]
                                 .amount,
@@ -248,26 +259,40 @@ export default function PropertyDetails({
                     ) : property.deadline_datetime ? (
                       <Card className="sm:p-2 shadow-none border-1 bg-cardBg border-cardBorder flex-1">
                         <CardBody className="flex justify-center">
-                          <h3 className="text-[16px] font-[700] text-[#2D2C31] font-[Figtree]">
-                            Offer Deadline
+                          <h3 className="flex whitespace-nowrap items-center gap-3 sm:text-[16px] text-[12px] font-[700] text-[#2D2C31] font-[Figtree] whitespace-nowrap">
+                            Offer Deadline{' '}
+                            <Image
+                              className="inline-block"
+                              src="/svgs/deadline.svg"
+                              alt="Deadline"
+                              width={20}
+                              height={20}
+                            />
                           </h3>
-                          <p className="text-[10.5px] mt-2 text-[#5E5E61] font-[700] font-[Figtree]">
+                          <p className="text-[#5E5E61] text-sm font-[Figtree]">
                             {moment(property.deadline_datetime).format(
-                              'dddd, MMMM Do, h:mm A',
+                              'MMMM Do, hA',
                             )}
                           </p>
                         </CardBody>
                       </Card>
-                    ) : null}
+                    ) : (
+                      <div className="lg:flex-1"></div>
+                    )}
                     <Card className="sm:p-2 shadow-none border-1 bg-cardBg border-cardBorder flex-1">
                       <CardBody className="flex justify-center">
-                        <h3 className="text-[16px] font-[700] text-[#2D2C31] font-[Figtree]">
-                          Open houses
+                        <h3 className="flex items-center gap-3 sm:text-[16px] text-[12px] font-[700] text-[#2D2C31] font-[Figtree] whitespace-nowrap">
+                          Open houses{' '}
+                          <Image
+                            className="inline-block"
+                            src="/svgs/calendar.svg"
+                            alt="Calendar"
+                            width={20}
+                            height={20}
+                          />
                         </h3>
-                        <p className="text-[10.5px] mt-2 text-[#5E5E61] font-[700] font-[Figtree]">
-                          {moment(property.openHouseTime)
-                            .format('dddd, MMMM D, YYYY - hh:mm A')
-                            .toUpperCase()}
+                        <p className="text-[#5E5E61] text-sm font-[Figtree]">
+                          {moment(property.openHouseTime).format('MMMM Do, hA')}
                         </p>
                       </CardBody>
                     </Card>
@@ -303,15 +328,11 @@ export default function PropertyDetails({
                     )}
                     <div className="mt-3">
                       <Checkbox
-                        className={`my-1 ${isRealEstateUser ? 'pointer-events-none' : ''}`}
+                        className="my-1"
                         isSelected={isToured}
-                        onChange={
-                          !isRealEstateUser ? handleTouredChange : undefined
-                        }
+                        onChange={handleTouredChange}
                       >
-                        <span
-                          className={`font-normal text-[13px] ${isRealEstateUser ? 'text-gray-500' : 'text-inherit'}`}
-                        >
+                        <span className="font-normal text-[13px] text-gray-500">
                           Property was toured
                         </span>
                       </Checkbox>
@@ -320,20 +341,46 @@ export default function PropertyDetails({
                 </Card>
               </div>
               <div className="lg:col-span-2 mt-2 sm:mt-0 h-fit">
-                <p className="text-[13.5px] font-[600] text-[#2D2C31] flex items-center font-[Figtree]">
-                  <FaLocationDot className="mr-1" />
-                  {property.address}
-                  {property.city && `, ${property.city}`}
-                  {property.state_or_province &&
-                    `, ${property.state_or_province}`}
-                </p>
-                <div className="mt-2 mb-2">
-                  <LeafletMap
-                    latitude={property.latitude}
-                    longitude={property.longitude}
-                    zoom={12}
-                    height="300px"
-                  />
+                <div className="md:mt-[2.75rem] mb-2">
+                  {property.latitude != null &&
+                  property.longitude != null &&
+                  !isNaN(property.latitude) &&
+                  !isNaN(property.longitude) ? (
+                    <LeafletMap
+                      latitude={property.latitude}
+                      longitude={property.longitude}
+                      zoom={12}
+                      height="300px"
+                    />
+                  ) : (
+                    <Card className="flex flex-col items-center justify-center h-[300px] bg-gray-50 border border-gray-200 rounded-2xl shadow-none">
+                      <CardBody className="flex flex-col items-center justify-center h-full">
+                        <div className="flex flex-col items-center">
+                          <svg
+                            width="40"
+                            height="40"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            className="text-gray-400 mb-2"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1112 6a2.5 2.5 0 010 5.5z"
+                            />
+                          </svg>
+                          <span className="text-gray-500 text-md font-semibold">
+                            Map Unavailable
+                          </span>
+                          <span className="text-gray-400 text-sm mt-1">
+                            Location data is missing for this property.
+                          </span>
+                        </div>
+                      </CardBody>
+                    </Card>
+                  )}
                 </div>
 
                 {/* Regular chat (desktop) */}

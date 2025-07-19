@@ -129,7 +129,7 @@ export function MemberFormRow({
             type="button"
             onClick={addMemberRow}
             className="flex items-center justify-center bg-[#F6F6F6] font-bold text-2xl leading-[30px] rounded-full w-[48px] h-[48px] flex-shrink-0 text-black cursor-pointer hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Add Member"
+            title="Add Relationship"
           >
             {' + '}
           </button>
@@ -138,7 +138,7 @@ export function MemberFormRow({
             type="button"
             onClick={() => onDeleteMember(index, member.id)}
             className={`flex items-center justify-center bg-[#F6F6F6] font-bold text-2xl leading-[30px] rounded-full w-[48px] h-[48px] flex-shrink-0 text-gray-600 cursor-pointer hover:bg-red-100 hover:text-red-600 disabled:opacity-50 disabled:cursor-not-allowed ${isDeleting ? 'animate-pulse' : ''}`}
-            title="Remove Member"
+            title="Remove Relationship"
             disabled={isDeleting || isFormLoading}
           >
             {isDeleting ? (
@@ -167,7 +167,7 @@ export function MemberFormRow({
                 height={20}
                 width={20}
                 src="/svgs/delete-black.svg"
-                alt="Remove Member"
+                alt="Remove Relationship"
               />
             )}
           </button>

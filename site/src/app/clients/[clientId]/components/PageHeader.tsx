@@ -5,22 +5,28 @@ import React from 'react';
 
 type PageHeaderProps = {
   isArchived?: boolean;
+  isEmailVerified?: boolean;
   title: string;
   isLoading: boolean;
+  isReinviting: boolean;
   isDeleting: boolean;
   onCancel: () => void;
   onArchive: (previousState: boolean | null) => void;
   onDeleteParent: () => void;
+  onReinvite: () => void;
 };
 
 export function PageHeader({
   isArchived,
+  isEmailVerified,
   title,
   isLoading,
+  isReinviting,
   isDeleting,
   onCancel,
   onArchive,
   onDeleteParent,
+  onReinvite,
 }: PageHeaderProps) {
   const router = useRouter();
   const disableActions = isLoading || isDeleting;
@@ -37,18 +43,21 @@ export function PageHeader({
         <h1 className="text-xl font-semibold text-gray-800">{title}</h1>
       </div>
       <div className="flex flex-col md:flex-row md:flex-wrap gap-3 w-full md:w-[unset]">
-        <Button
-          size="lg"
-          variant="flat"
-          radius="full"
-          className="text-xs uppercase font-semibold !bg-[#F6F6F6] !text-gray-700"
-          onPress={onCancel}
-          type="button"
-          disabled={disableActions}
-        >
-          {' '}
-          Cancel{' '}
-        </Button>
+        {!isEmailVerified && (
+          <Button
+            size="lg"
+            variant="flat"
+            radius="full"
+            className="text-xs uppercase font-semibold !bg-[#F6F6F6] !text-gray-700"
+            onPress={onReinvite}
+            isLoading={isReinviting}
+            type="button"
+            disabled={disableActions}
+          >
+            {' '}
+            Reinvite Client{' '}
+          </Button>
+        )}
         <Button
           size="lg"
           variant="flat"
@@ -61,6 +70,18 @@ export function PageHeader({
           disabled={disableActions}
         >
           {isArchived ? 'Archive' : 'Unarchive'}{' '}
+        </Button>
+        <Button
+          size="lg"
+          variant="flat"
+          radius="full"
+          className="text-xs uppercase font-semibold !bg-[#F6F6F6] !text-gray-700"
+          onPress={onCancel}
+          type="button"
+          disabled={disableActions}
+        >
+          {' '}
+          Cancel{' '}
         </Button>
         <button
           type="button"

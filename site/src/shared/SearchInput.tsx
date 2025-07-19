@@ -1,22 +1,21 @@
 import { Input } from '@heroui/react';
-import { useState } from 'react';
 import { MdSearch } from 'react-icons/md';
 
 interface SearchInputProps {
   onSearch: (searchQuery: string) => void | Promise<void>;
   className?: string;
+  value: string;
+  onChange?: (value: string) => void;
 }
 
-export default function SearchInput({ onSearch, className }: SearchInputProps) {
-  const [value, setValue] = useState<string>('');
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await onSearch(value);
-  };
-
+export default function SearchInput({
+  onSearch,
+  className,
+  value,
+  onChange,
+}: SearchInputProps) {
   return (
-    <form onSubmit={handleSubmit} className={className}>
+    <div className={className}>
       <Input
         classNames={{
           base: 'w-full',
@@ -29,16 +28,16 @@ export default function SearchInput({ onSearch, className }: SearchInputProps) {
         radius="full"
         placeholder="Search"
         value={value}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={(e) => (onChange ? onChange(e.target.value) : undefined)}
         endContent={
-          <button type="submit" className="focus:outline-none">
+          <span>
             <MdSearch
               size={24}
               className="text-default-400 pointer-events-none flex-shrink-0"
             />
-          </button>
+          </span>
         }
       />
-    </form>
+    </div>
   );
 }

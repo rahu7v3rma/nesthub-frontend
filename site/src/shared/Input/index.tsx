@@ -60,13 +60,13 @@ const Input: FunctionComponent<Props> = ({
             `}
           >
             {visible ? (
-              <AiOutlineEye
+              <AiOutlineEyeInvisible
                 className={'cursor-pointer'}
                 onClick={() => setVisible(!visible)}
                 size={20}
               />
             ) : (
-              <AiOutlineEyeInvisible
+              <AiOutlineEye
                 className={'cursor-pointer right-0'}
                 onClick={() => setVisible(!visible)}
                 size={20}

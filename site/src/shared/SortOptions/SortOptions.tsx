@@ -39,28 +39,35 @@ const sortKeyApiMap: Record<SortKey, string> = {
 type SortOptionsProps = {
   layout: 'grid' | 'list';
   onLayoutChange: (newLayout: 'grid' | 'list') => void;
+  onSortingChange: (sorting: string) => void;
   fetchProperties?: (params: FetchPropertiesParams) => void;
 };
 
 export default function SortOptions({
   layout,
   onLayoutChange,
+  onSortingChange,
   fetchProperties,
 }: SortOptionsProps) {
   const [sortKey, setSortKey] = useState<SortKey>('price');
-  const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('DESC');
+  const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
 
   useEffect(() => {
-    if (fetchProperties) {
+    if (fetchProperties && sortKey && sortOrder) {
       const apiSortKey = sortKeyApiMap[sortKey];
       const sortParam = `${apiSortKey}_${sortOrder}`;
+      onSortingChange(sortParam);
       fetchProperties({ sort: sortParam });
     }
-  }, [sortKey, sortOrder]);
+  }, [fetchProperties, sortKey, sortOrder, onSortingChange]);
 
   const handleSortKeyChange = (key: Key) => {
     if (Object.keys(sortLabels).includes(key as string)) {
       setSortKey(key as SortKey);
+      // Set default sort order when sort key is selected
+      if (!sortOrder) {
+        setSortOrder('DESC');
+      }
     }
   };
 
@@ -72,7 +79,7 @@ export default function SortOptions({
             <Button variant="light" className="text-gray-500">
               <span className="text-sm">
                 <span className="font-medium">SORT BY:</span>{' '}
-                {sortLabels[sortKey]}
+                {sortKey ? sortLabels[sortKey] : 'Select sort option'}
               </span>
               <FiChevronDown />
             </Button>
@@ -115,7 +122,11 @@ export default function SortOptions({
         <div className="flex items-center">
           <LuArrowUp
             size={20}
-            onClick={() => setSortOrder('ASC')}
+            onClick={() => {
+              if (sortOrder !== undefined) {
+                setSortOrder('ASC');
+              }
+            }}
             className={`cursor-pointer ${
               sortOrder === 'ASC' ? 'text-gray-800' : 'text-gray-400'
             }`}
@@ -123,7 +134,11 @@ export default function SortOptions({
           />
           <LuArrowDown
             size={20}
-            onClick={() => setSortOrder('DESC')}
+            onClick={() => {
+              if (sortOrder !== undefined) {
+                setSortOrder('DESC');
+              }
+            }}
             className={`cursor-pointer -ml-1 ${
               sortOrder === 'DESC' ? 'text-gray-800' : 'text-gray-400'
             }`}

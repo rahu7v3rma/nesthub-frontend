@@ -295,7 +295,7 @@ function AddComparableModal({
         setSearchResults([]);
       }
     },
-    [getMLSSearch],
+    [getMLSSearch, addressError],
   );
 
   const handleSelectAddress = (property: Property) => {
@@ -781,9 +781,13 @@ export default function PropertyComparables({
 
   return (
     <>
-      <Card className="p-[35px_28px] mb-[5rem]">
+      <Card
+        className={`${addressComparables.length <= 0 ? 'py-[0] m-0' : 'py-[35px] mb-[1rem]'} px-[28px]`}
+      >
         <CardHeader>
-          <div className="flex gap-[10px] items-center">
+          <div
+            className={`flex gap-[10px] items-center ${addressComparables.length <= 0 ? 'w-full justify-between' : ''}`}
+          >
             <h2 className="text-[#2D2C31] font-[700] text-[18px] font-[Figtree]">
               Comparables
             </h2>
@@ -845,8 +849,8 @@ export default function PropertyComparables({
             )}
           </div>
         </CardHeader>
-        <CardBody>
-          {addressComparables.length > 0 ? (
+        {addressComparables.length > 0 && (
+          <CardBody>
             <Table
               aria-label="comparables table"
               classNames={{
@@ -973,12 +977,8 @@ export default function PropertyComparables({
                 ))}
               </TableBody>
             </Table>
-          ) : (
-            !linkOnlyComparable && (
-              <p className="text-gray-500 text-sm">No comparables added yet.</p>
-            )
-          )}
-        </CardBody>
+          </CardBody>
+        )}
       </Card>
 
       {userType === 'realtor' &&

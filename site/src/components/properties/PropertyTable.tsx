@@ -1,7 +1,9 @@
 import { Image, Tooltip } from '@heroui/react';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { FaStar } from 'react-icons/fa';
+import { FaCheck, FaStar } from 'react-icons/fa';
+import { FaLocationDot } from 'react-icons/fa6';
+import { GoDotFill } from 'react-icons/go';
 
 import NewMessage from '@/assets/icons/newMessage';
 import { Property } from '@/interfaces/property';
@@ -11,9 +13,13 @@ import { formatCurrency, formatQuantity } from '@/utils/format';
 
 type PropertyTableProps = {
   property: Property;
+  layout: string;
 };
 
-export default function PropertyTable({ property }: PropertyTableProps) {
+export default function PropertyTable({
+  property,
+  layout,
+}: PropertyTableProps) {
   const router = useRouter();
   const [userType, setUserType] = useState<string | null>(null);
 
@@ -44,26 +50,30 @@ export default function PropertyTable({ property }: PropertyTableProps) {
     return false;
   };
 
+  const fullAddress = `${property.address}${
+    property.city ? `, ${property.city}` : ''
+  }${property.state_or_province ? `, ${property.state_or_province}` : ''}`;
+
   return (
     <>
-      <div className="grid grid-cols-[1.5fr_10.5fr]  gap-1">
-        <div className="md:flex md:m-auto">
+      <div className="grid grid-cols-[1fr_7fr] gap-3">
+        <div className="flex items-center justify-center">
           {property.image ? (
             <>
               {/* eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text */}
               <img
                 alt={property.name}
                 src={property.image}
-                className="rounded-3xl cursor-pointer"
+                className="rounded-3xl cursor-pointer object-cover"
                 onClick={handleRedirect}
-                style={{ height: '80px', width: '120px', maxWidth: '100%' }}
+                style={{ height: '80px', width: '120px' }}
               />
             </>
           ) : (
             <div
               className="flex items-center justify-center rounded-3xl bg-gray-100 shadow-inner cursor-pointer"
               onClick={handleRedirect}
-              style={{ height: '80px', width: '120px', maxWidth: '100%' }}
+              style={{ height: '80px', width: '120px' }}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -83,20 +93,40 @@ export default function PropertyTable({ property }: PropertyTableProps) {
             </div>
           )}
         </div>
-        <div className="md:ml-3">
+        <div>
           <div className="grid grid-cols-12 gap-2 h-full">
-            <div className="col-span-6 lg:col-span-4 my-auto">
-              <span className="flex text-[13px] text-[#2D2C31] items-center whitespace-nowrap">
-                <Image
-                  alt={property.name}
-                  src={'/svgs/address.svg'}
-                  className="rounded-3xl"
-                />
-                {property.address}
-                {property.city && `, ${property.city}`}
-                {property.state_or_province &&
-                  `, ${property.state_or_province}`}
-              </span>
+            <div className="col-span-6 lg:col-span-3 my-auto">
+              <div className="flex text-[13px] text-[#2D2C31] whitespace-normal break-words">
+                <div className="mr-1 mt-0.5 flex-shrink-0">
+                  <FaLocationDot />
+                </div>
+                <div className="ml-1">
+                  {property.address}
+                  {property.city && `, ${property.city}`}
+                  {property.state_or_province &&
+                    `, ${property.state_or_province}`}
+                </div>
+              </div>
+            </div>
+            <div className="col-span-6 lg:col-span-1 my-auto">
+              <div className="flex mt-2 justify-start lg:justify-center">
+                <p className="my-auto">{property.property_rating}</p>
+                <span className="text-yellow-400 my-auto mx-1">
+                  <FaStar />
+                </span>
+              </div>
+            </div>
+            <div className="col-span-6 lg:col-span-1 my-auto">
+              <div className="flex mt-2 justify-start lg:justify-center">
+                {property.is_property_toured && (
+                  <>
+                    <p className="my-auto text-grey-500 text-[13px]">Toured</p>
+                    <span className="text-green-400 my-auto mx-1">
+                      <FaCheck size={11} />
+                    </span>
+                  </>
+                )}
+              </div>
             </div>
             <div className="col-span-6 lg:col-span-2 my-auto">
               <p className="!font-[700] text-base text-[#2D2C31]">
@@ -111,25 +141,7 @@ export default function PropertyTable({ property }: PropertyTableProps) {
                 </p>
               </div>
             </div>
-            <div className="col-span-6 lg:col-span-1 my-auto">
-              <div className="flex mt-2 justify-start lg:justify-center">
-                <p className="my-auto">{property.property_rating}</p>
-                <span className="text-yellow-400 my-auto mx-1">
-                  <FaStar />
-                </span>
-              </div>
-            </div>
-            <div className="col-span-6 lg:col-span-3 my-auto">
-              <p className="text-xs flex gap-1 mt-1">
-                <span className="text-[13px] text-[#5E5E61]">
-                  {formatQuantity(property.no_of_beds, 'bed')} ·{' '}
-                </span>
-                <span className="text-[13px] text-[#5E5E61]">
-                  {formatQuantity(property.no_of_baths, 'bath')} ·
-                </span>
-                <span className="text-[13px] text-[#5E5E61]">{`${property.square_feet_size} sq ft`}</span>
-              </p>
-            </div>
+
             <div className="col-span-6 lg:col-span-1 my-auto">
               <p className="text-[13px] text-[#A9A6B2]">Deadline</p>
               <p className="text-[13px] text-[#5E5E61]">
@@ -140,12 +152,24 @@ export default function PropertyTable({ property }: PropertyTableProps) {
                   : '-'}
               </p>
             </div>
+
+            <div className="col-span-6 lg:col-span-3 my-auto">
+              <p className="text-xs flex justify-evenly gap-2 mt-1">
+                <span className="text-[13px] text-[#5E5E61]">
+                  {formatQuantity(property.no_of_beds, 'bed')}
+                </span>
+                <GoDotFill className="relative my-auto" size={7} />
+                <span className="text-[13px] text-[#5E5E61]">
+                  {formatQuantity(property.no_of_baths, 'bath')}
+                </span>
+                <GoDotFill className="relative my-auto" size={7} />
+                <span className="text-[13px] text-[#5E5E61]">{`${property.square_feet_size} sq ft`}</span>
+              </p>
+            </div>
+
             <div className="col-span-3 lg:col-span-1 my-auto">
               <div className="flex gap-[5px]">
-                {property.has_unread_messages && (
-                  <NewMessage onClick={handleRedirect} />
-                )}
-                {property.has_disclosures && (
+                {!showNew() && property.has_disclosures && (
                   <Tooltip
                     color="primary"
                     content="Disclosure available"
@@ -154,33 +178,13 @@ export default function PropertyTable({ property }: PropertyTableProps) {
                     <Image
                       alt={'lock'}
                       src={'/svgs/chat-lock.svg'}
-                      className="rounded-3xl cursor-pointer hover:text-gray-400"
+                      className="rounded-3xl cursor-pointer hover:text-gray-400 h-[30px] w-[30px]"
                     />
                   </Tooltip>
                 )}
-                {property.offers &&
-                  property.offers.length > 0 &&
-                  (() => {
-                    if (property.offers.length === 1) {
-                      return (
-                        <Offer
-                          amount={property.offers[0].amount}
-                          offer_type="user"
-                        />
-                      );
-                    } else {
-                      const amountFromLast =
-                        property.offers[property.offers.length - 1].amount;
-                      const dateFromFirst = property.offers[0]?.date;
-                      return (
-                        <Offer
-                          amount={amountFromLast}
-                          offer_type="last"
-                          last_offer_date={dateFromFirst}
-                        />
-                      );
-                    }
-                  })()}
+                {property.has_unread_messages && (
+                  <NewMessage onClick={handleRedirect} />
+                )}
                 {showNew() && <New />}
               </div>
             </div>

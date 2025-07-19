@@ -34,7 +34,6 @@ const Conversation = ({ chats, chatHeight, isMobile }: ConversationProps) => {
     }
   }, [isMobile, chatHeight]);
 
-  console.log('Chat Message:   ', chats);
   return (
     <div
       ref={chatContainerRef}

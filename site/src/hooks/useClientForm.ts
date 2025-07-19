@@ -3,7 +3,12 @@ import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'react-toastify';
 
 import { ClientFormRowData, ErrorResponseType } from '@/interfaces/client';
-import { getClientDetails, editClientData, deleteClient } from '@/services/api';
+import {
+  getClientDetails,
+  editClientData,
+  deleteClient,
+  reinviteClient,
+} from '@/services/api';
 import { splitName, joinName } from '@/utils/nameUtils';
 
 export function useClientForm() {
@@ -21,6 +26,7 @@ export function useClientForm() {
     [index: number]: { [field: string]: string };
   }>({});
   const [isLoading, setIsLoading] = useState(false); // Main form saving
+  const [isReinviting, setIsReinviting] = useState(false); // Main form saving
   const [isFetchingData, setIsFetchingData] = useState(true);
   const [pageTitle] = useState('Client details');
   const [deletingMemberId, setDeletingMemberId] = useState<number | null>(null);
@@ -58,6 +64,7 @@ export function useClientForm() {
         lastName: parentName.lastName,
         email: fetchedData.email,
         phone: fetchedData.phone,
+        isEmailVerified: fetchedData.is_email_verified,
       };
       const memberRows: ClientFormRowData[] = (fetchedData.members || []).map(
         (member) => {
@@ -137,14 +144,14 @@ export function useClientForm() {
     if (deletingMemberId === memberId || isLoading) return;
 
     setConfirmModalConfig({
-      title: 'Remove Member',
-      subTitle: 'Are you sure you want to remove this member?',
+      title: 'Remove Relationship',
+      subTitle: 'Are you sure you want to remove this relationship?',
       onConfirm: async () => {
         setDeletingMemberId(memberId);
         try {
           if (!parentClientId) throw new Error('Parent Client ID is missing.');
           await deleteClient(String(memberId));
-          toast.success('Member removed successfully!');
+          toast.success('Relationship removed successfully!');
           const newClients = clientRows.filter(
             (client) => client.id !== memberId,
           );
@@ -171,7 +178,7 @@ export function useClientForm() {
             return updatedErrors;
           });
         } catch (err: any) {
-          handleApiError(err, `API Error deleting member ${memberId}`);
+          handleApiError(err, `API Error deleting relationship ${memberId}`);
         } finally {
           setDeletingMemberId(null);
         }
@@ -200,6 +207,20 @@ export function useClientForm() {
       },
     });
     setShowConfirmModal(true);
+  };
+
+  const handleReinviteClient = async () => {
+    if (!parentClientId) return;
+    setIsReinviting(true);
+    try {
+      await reinviteClient(String(parentClientId));
+      toast.success('Reinvite email sent successfully!');
+    } catch (err: any) {
+      handleApiError(err, 'Failed to reinvite client.');
+      setIsReinviting(false);
+    } finally {
+      setIsReinviting(false);
+    }
   };
 
   const validateRow = (
@@ -244,7 +265,7 @@ export function useClientForm() {
       return;
     }
     if (rowsToProcess.length === 0) {
-      toast.error('Client data is empty.');
+      toast.error('Relationship data is empty.');
       return;
     } // Should not happen if parent exists
 
@@ -493,6 +514,7 @@ export function useClientForm() {
     clientRows,
     errors,
     isLoading,
+    isReinviting,
     isFetchingData,
     loadError,
     pageTitle,
@@ -500,6 +522,7 @@ export function useClientForm() {
     addClientRow,
     handleDeleteMember,
     handleDeleteClient,
+    handleReinviteClient,
     handleSubmit,
     handleChange,
     handleCancel,

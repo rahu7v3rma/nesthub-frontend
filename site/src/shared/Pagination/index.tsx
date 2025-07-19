@@ -1,4 +1,5 @@
 import React from 'react';
+import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io';
 
 import { PropertyListResponse } from '@/interfaces/property';
 
@@ -33,7 +34,7 @@ const Pagination: React.FC<PaginationProps> = ({
         disabled={currentPage === 1}
         className="text-xl font-bold px-3 py-1 rounded disabled:opacity-50 hover:bg-gray-100 transition"
       >
-        &lt;
+        <IoIosArrowBack />
       </button>
       <span className="text-[13px] font-normal">Page {currentPage}</span>
       <button
@@ -41,7 +42,7 @@ const Pagination: React.FC<PaginationProps> = ({
         disabled={!hasNext}
         className="text-xl font-bold px-3 py-1 rounded disabled:opacity-50 hover:bg-gray-100 transition"
       >
-        &gt;
+        <IoIosArrowForward />
       </button>
     </div>
   );

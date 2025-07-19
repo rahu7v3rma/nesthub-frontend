@@ -30,6 +30,7 @@ export default function PropertiesContainer({
   const [newProperties, setNewProperties] =
     useState<PropertyListResponse>(properties);
   const [clientName, setClientName] = useState('');
+  const [sorting, setSorting] = useState('');
   const [loading, setLoading] = useState<boolean>(true);
   const [layout, setLayout] = useState<'grid' | 'list'>('grid');
   const { isOpen, onOpen, onClose, onOpenChange } = useDisclosure();
@@ -122,14 +123,14 @@ export default function PropertiesContainer({
     setLayout(newLayout);
   };
 
-  // if (!Array.isArray(allProperties) || allProperties.length === 0) {
-  //   return <div className="text-center p-4">No properties available.</div>;
-  // }
+  const handleSortingChange = useCallback((sorting: string) => {
+    setSorting(sorting);
+  }, []);
 
   const handleAddProperty = async () => {
     const response: PropertyListResponse = await getPropertyListing({
       page: 1,
-      limit: 10,
+      limit: 12,
       user_id: localStorage.getItem('clientId') || '',
     });
 
@@ -146,9 +147,11 @@ export default function PropertiesContainer({
   };
 
   const onPageChange = async (page: number) => {
+    localStorage.setItem('properties_page', page.toString());
     const response: PropertyListResponse = await getPropertyListing({
       page: page,
-      limit: 10,
+      limit: 12,
+      sort: sorting,
       user_id: localStorage.getItem('clientId') || '',
     });
 
@@ -314,6 +317,7 @@ export default function PropertiesContainer({
           fetchProperties={fetchProperties}
           layout={layout}
           onLayoutChange={handleLayoutChange}
+          onSortingChange={handleSortingChange}
         />
       </div>
 

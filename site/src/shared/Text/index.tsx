@@ -6,6 +6,7 @@ interface TextProps {
   className?: string;
   color?: string;
   align?: 'left' | 'center' | 'right' | 'justify';
+  fontFamily?: string;
   weight?:
     | 'thin'
     | 'extralight'
@@ -26,6 +27,7 @@ const Text: React.FC<TextProps> = ({
   color = 'text-[#6C8093]',
   align = 'left',
   weight = 'normal',
+  fontFamily = 'font-[Assistant]',
   children,
 }) => {
   const variantClasses = {
@@ -37,7 +39,7 @@ const Text: React.FC<TextProps> = ({
   };
 
   // Combine all classes
-  const classes = `${variantClasses[variant]} ${color} text-${align} font-${weight} font-[Assistant] ${className}`;
+  const classes = `${variantClasses[variant]} ${color} text-${align} font-${weight} ${fontFamily} ${className}`;
 
   return <Component className={classes}>{children}</Component>;
 };

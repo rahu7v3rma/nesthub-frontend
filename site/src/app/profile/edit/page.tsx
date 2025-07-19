@@ -704,6 +704,7 @@ export default function EditProfilePage() {
             <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
               <div className="w-full lg:w-auto flex-shrink-0 flex lg:flex-col items-center lg:items-start">
                 <div className="relative mx-auto lg:mx-0">
+                  {/* eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text */}
                   <img
                     src={currentAvatarSrc}
                     alt="Profile picture"
@@ -884,6 +885,7 @@ export default function EditProfilePage() {
                           minWidth={100}
                           minHeight={100}
                         >
+                          {/* eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text */}
                           <img
                             ref={imgRef}
                             alt="Crop me"
@@ -905,6 +907,7 @@ export default function EditProfilePage() {
                       <div className="w-full mt-4 flex items-center justify-between p-2.5 border border-gray-200 rounded-lg bg-gray-50">
                         <div className="flex items-center space-x-2.5 overflow-hidden">
                           <div className="w-8 h-8 rounded-full overflow-hidden border">
+                            {/* eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text */}
                             <img
                               src={imgSrc}
                               alt="Original preview"

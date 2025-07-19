@@ -280,7 +280,7 @@ export default function AddClientModal({
                               label={
                                 isParentRow
                                   ? 'Primary First Name'
-                                  : `Member ${index} First Name`
+                                  : `Relationship ${index} First Name`
                               }
                               className="!bg-[#F9F9F9] !rounded-[48px] w-full h-[48px] !border-none px-4"
                               lableClass="text-[#A8A6B0] font-normal text-sm mb-1 ml-4"
@@ -308,7 +308,7 @@ export default function AddClientModal({
                               label={
                                 isParentRow
                                   ? 'Primary Last Name'
-                                  : `Member ${index} Last Name`
+                                  : `Relationship ${index} Last Name`
                               }
                               className="!bg-[#F9F9F9] !rounded-[48px] w-full h-[48px] !border-none px-4"
                               lableClass="text-[#A8A6B0] font-normal text-sm mb-1 ml-4"
@@ -336,7 +336,7 @@ export default function AddClientModal({
                               label={
                                 isParentRow
                                   ? 'Primary Email'
-                                  : `Member ${index} Email`
+                                  : `Relationship ${index} Email`
                               }
                               type="email"
                               className="!bg-[#F9F9F9] !rounded-[48px] w-full h-[48px] !border-none px-4"
@@ -365,7 +365,7 @@ export default function AddClientModal({
                               label={
                                 isParentRow
                                   ? 'Primary Phone (Optional)'
-                                  : `Member ${index} Phone (Optional)`
+                                  : `Relationship ${index} Phone (Optional)`
                               }
                               type="tel"
                               className="!bg-[#F9F9F9] !rounded-[48px] w-full h-[48px] !border-none px-4"
@@ -396,7 +396,7 @@ export default function AddClientModal({
                               type="button"
                               onClick={() => removeMemberRow(index)}
                               className="flex items-center justify-center bg-gray-100 font-bold text-2xl leading-tight rounded-full w-[36px] h-[36px] flex-shrink-0 text-gray-500 cursor-pointer hover:bg-red-100 hover:text-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                              title="Remove Member"
+                              title="Remove Relationship"
                               disabled={isLoading}
                             >
                               <span className="mb-1">-</span>

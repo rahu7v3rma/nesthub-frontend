@@ -23,6 +23,7 @@ export default function EditClientPage() {
     clientRows,
     errors,
     isLoading,
+    isReinviting,
     isFetchingData,
     loadError,
     pageTitle,
@@ -30,6 +31,7 @@ export default function EditClientPage() {
     addClientRow,
     handleDeleteMember,
     handleDeleteClient,
+    handleReinviteClient,
     handleSubmit,
     handleChange,
     handleCancel,
@@ -55,6 +57,8 @@ export default function EditClientPage() {
     );
   }
 
+  console.log('TTTTT ', clientRows);
+
   return (
     <div className="m-2 p-6 md:p-10 bg-white rounded-xl shadow-md max-w-7xl border border-gray-200">
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
@@ -67,12 +71,15 @@ export default function EditClientPage() {
       <div className="flex flex-col-reverse md:flex-col">
         <PageHeader
           isArchived={clientRows[0].isArchived}
+          isEmailVerified={clientRows[0].isEmailVerified}
           title={pageTitle}
           isLoading={isLoading}
+          isReinviting={isReinviting}
           isDeleting={!!deletingMemberId}
           onCancel={handleCancel}
           onArchive={handleArchive}
           onDeleteParent={handleDeleteClient}
+          onReinvite={handleReinviteClient}
         />
 
         <form id="client-form" onSubmit={handleSubmit} noValidate>
@@ -99,7 +106,7 @@ export default function EditClientPage() {
               type="button"
               onClick={addClientRow}
               className="flex items-center justify-center bg-[#F6F6F6] font-bold text-2xl leading-[30px] rounded-full w-[48px] h-[48px] flex-shrink-0 text-black cursor-pointer hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              title="Add Member"
+              title="Add Relationship"
               disabled={isLoading || !!deletingMemberId}
             >
               {' '}

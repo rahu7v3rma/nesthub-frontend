@@ -12,7 +12,7 @@ const publicRoutes = [
 
 export function middleware(request: NextRequest) {
   const authToken = request.cookies.get('authToken');
-  const { pathname } = request.nextUrl;
+  const { pathname, search } = request.nextUrl;
   const isOTPVerified = getOTPVerified();
 
   const isPublicRoute =
@@ -22,8 +22,11 @@ export function middleware(request: NextRequest) {
     pathname.startsWith(ROUTES.clientSetPassword) ||
     pathname.startsWith(ROUTES.resetPasswordRedirect);
 
+  const isStripeCallback =
+    pathname === '/billing' && search.includes('?success=');
+
   // If trying to access a private route without token
-  if (!isPublicRoute && !authToken) {
+  if (!isPublicRoute && !authToken && !isStripeCallback) {
     const signInUrl = new URL(ROUTES.signin, request.url);
     return NextResponse.redirect(signInUrl);
   }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import PropertyDetails from '@/components/properties/PropertyDetails';
 import { PropertyDetails as IPropertyDetails } from '@/interfaces/property';
@@ -17,36 +17,41 @@ export default function PropertyPage() {
   const [error, setError] = useState<string | null>(null);
   const [reRenderFlag, setRerenderFlag] = useState<boolean>(false);
 
-  const fetchPropertyDetails = (signal?: AbortSignal) => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const realtor_property_id = localStorage.getItem('realtor_property_id');
-      if (!realtor_property_id) {
-        throw new Error('Realtor property ID not found');
+  const fetchPropertyDetails = useCallback(
+    async (signal?: AbortSignal, loading: boolean = true) => {
+      if (loading) {
+        setLoading(true);
       }
+      setError(null);
 
-      getPropertyDetails(id as string, realtor_property_id)
-        .then((property) => {
+      try {
+        const realtor_property_id = localStorage.getItem('realtor_property_id');
+        if (!realtor_property_id) {
+          throw new Error('Realtor property ID not found');
+        }
+
+        const property = await getPropertyDetails(
+          id as string,
+          realtor_property_id,
+        );
+        if (!signal?.aborted) {
           setProperty(property);
-          setLoading(false);
-        })
-        .catch((err) => {
-          if (signal?.aborted) {
-            console.log('Fetch aborted');
-          } else {
-            console.error('Error fetching property details:', err);
-            setError('Failed to load property details');
+          if (loading) {
             setLoading(false);
           }
-        });
-    } catch (err) {
-      console.error('Error in fetchPropertyDetails:', err);
-      setError('Failed to load property details');
-      setLoading(false);
-    }
-  };
+        }
+      } catch (err) {
+        if (!signal?.aborted) {
+          console.error('Error fetching property details:', err);
+          setError('Failed to load property details');
+          if (loading) {
+            setLoading(false);
+          }
+        }
+      }
+    },
+    [id],
+  );
 
   useEffect(() => {
     const controller = new AbortController();
@@ -63,7 +68,7 @@ export default function PropertyPage() {
     return () => {
       controller.abort();
     };
-  }, [id, reRenderFlag]);
+  }, [id, reRenderFlag, fetchPropertyDetails]);
 
   if (loading) {
     return <PropertyDetailSkeleton />;

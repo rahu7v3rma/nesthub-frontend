@@ -11,6 +11,8 @@ module.exports = {
       fontFamily: {
         gilroy: ['Gilroy', 'sans-serif'],
         ramillas: ['TTRamillasTrl', 'serif'],
+        figtree: ['Figtree','sans-serif'],
+        inter: ["Inter",'sans-serif']
       },
       backgroundImage: {
         'custom-gradient':

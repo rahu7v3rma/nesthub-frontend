@@ -3206,6 +3206,126 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
+  /properties/offer/{id}:
+    post:
+      summary: Update offer status for a property
+      description: Updates the status of a specific offer on a property.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the offer to update
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                offer_status:
+                  type: string
+                  enum: [accepted, rejected, pending]
+                  example: rejected
+              required:
+                - offer_status
+      responses:
+        '200':
+          description: Offer updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Offer updated successfully.
+                  status:
+                    type: integer
+                    example: 200
+                  data:
+                    type: object
+                    example: {}
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '401':
+          description: Authentication credentials were not provided or are invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Offer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      security:
+        - auth_key: []
+    delete:
+      summary: Delete an offer
+      description: Deletes a specific offer from the property by offer ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the offer to delete
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Offer deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Offer deleted successfully.
+                  status:
+                    type: integer
+                    example: 200
+                  data:
+                    type: object
+                    example: {}
+        '401':
+          description: Authentication credentials were not provided or are invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '403':
+          description: Permission denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+        '404':
+          description: Offer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+      security:
+        - auth_key: []
 components:
   schemas:
     BasePropertySchema:
@@ -3368,6 +3488,9 @@ components:
     PropertyOfferItemSchema:
       type: object
       properties:
+        id:
+          type: integer
+          example: 1
         date:
           type: string
           format: date-time

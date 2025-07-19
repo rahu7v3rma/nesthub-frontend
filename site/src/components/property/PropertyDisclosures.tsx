@@ -35,6 +35,7 @@ import {
 } from 'react-icons/io5';
 import { toast } from 'react-toastify';
 
+import useDeviceType from '@/hooks/useDeviceType';
 import {
   PropertyDisclosure,
   PropertyDisclosureFile,
@@ -499,7 +500,7 @@ export default function PropertyDisclosures({
   disclosures,
   onDisclosureAdded,
 }: PropertyDisclosuresProps) {
-  const [isMobile, setIsMobile] = useState(false);
+  const { isMobile } = useDeviceType();
   const {
     isOpen: isAddModalOpen,
     onOpen: onAddModalOpen,
@@ -526,13 +527,6 @@ export default function PropertyDisclosures({
     }
   }, []);
 
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 500);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
   const handleAddSuccess = () => {
     if (onDisclosureAdded) {
       onDisclosureAdded();
@@ -546,9 +540,13 @@ export default function PropertyDisclosures({
 
   return (
     <>
-      <Card className="p-[35px_28px]">
+      <Card
+        className={`${disclosures && disclosures.length <= 0 ? 'py-[0]' : 'py-[35px]'} px-[28px]`}
+      >
         <CardHeader>
-          <div className="flex gap-[10px] items-center">
+          <div
+            className={`flex gap-[10px] items-center ${disclosures && disclosures.length <= 0 ? 'w-full justify-between' : ''}`}
+          >
             <h2 className="text-[#2D2C31] font-[700] text-[18px] font-[Figtree]">
               Disclosures
             </h2>
@@ -564,8 +562,8 @@ export default function PropertyDisclosures({
             )}
           </div>
         </CardHeader>
-        <CardBody>
-          {disclosures && disclosures.length > 0 ? (
+        {disclosures && disclosures.length > 0 && (
+          <CardBody>
             <div className="flex gap-4 sm:gap-7 flex-col sm:flex-row overflow-x-auto pb-2">
               {disclosures.map((item, index) => (
                 <div
@@ -614,10 +612,8 @@ export default function PropertyDisclosures({
                   </div>
                 )}
             </div>
-          ) : (
-            <p className="text-gray-500 text-sm">No disclosures added yet.</p>
-          )}
-        </CardBody>
+          </CardBody>
+        )}
       </Card>
 
       {propertyId && userType === 'realtor' && (

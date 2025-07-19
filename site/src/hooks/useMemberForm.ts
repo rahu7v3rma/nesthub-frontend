@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { toast } from 'react-toastify';
 
 import { useUser } from '@/hooks/useUser';
@@ -22,7 +22,7 @@ export function useMemberForm() {
   }>({});
   const [isLoading, setIsLoading] = useState(false); // Main form saving
   const [isFetchingData, setIsFetchingData] = useState(true);
-  const [pageTitle] = useState('Invite family members or friends');
+  const [pageTitle] = useState('Invite family relationships or friends');
   const [deletingMemberId, setDeletingMemberId] = useState<number | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null); // State for data load errors
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -32,13 +32,16 @@ export function useMemberForm() {
     onConfirm: () => void;
   } | null>(null);
 
-  const emptyRow = {
-    id: null,
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-  };
+  const emptyRow = useMemo(
+    () => ({
+      id: null,
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+    }),
+    [],
+  );
 
   const loadInitialData = useCallback(async () => {
     setIsFetchingData(true);
@@ -75,7 +78,7 @@ export function useMemberForm() {
     } finally {
       setIsFetchingData(false);
     }
-  }, []);
+  }, [emptyRow]);
 
   useEffect(() => {
     loadInitialData();
@@ -114,13 +117,13 @@ export function useMemberForm() {
     if (deletingMemberId === memberId || isLoading) return;
 
     setConfirmModalConfig({
-      title: 'Remove Member',
-      subTitle: 'Are you sure you want to remove this member?',
+      title: 'Remove Relationship',
+      subTitle: 'Are you sure you want to remove this relationship?',
       onConfirm: async () => {
         setDeletingMemberId(memberId);
         try {
           await deleteClientMember(memberId);
-          toast.success('Member removed successfully!');
+          toast.success('Relationship removed successfully!');
           const newClients = memberRows.filter(
             (client) => client.id !== memberId,
           );
@@ -148,7 +151,7 @@ export function useMemberForm() {
             return updatedErrors;
           });
         } catch (err: any) {
-          handleApiError(err, `API Error deleting member ${memberId}`);
+          handleApiError(err, `API Error deleting relationship ${memberId}`);
         } finally {
           setDeletingMemberId(null);
         }
@@ -198,7 +201,7 @@ export function useMemberForm() {
       return;
     }
     if (rowsToProcess.length === 0) {
-      toast.error('Member data is empty.');
+      toast.error('Relationship data is empty.');
       return;
     } // Should not happen if parent exists
 
@@ -273,7 +276,9 @@ export function useMemberForm() {
 
       const response = await editMembersData(finalPayload);
       if (response.success) {
-        toast.success(response.message || 'Member(s) updated successfully!');
+        toast.success(
+          response.message || 'Relationship(s) updated successfully!',
+        );
         // Update UI and initial state from response
         const updatedMembers = response.data.members;
         const newInitialMembers = updatedMembers.map((m: any) => {
@@ -291,7 +296,7 @@ export function useMemberForm() {
         setInitialMemberRows(JSON.parse(JSON.stringify(newInitialRows)));
         setErrors({});
       } else {
-        handleApiErrorResponse(response, 'Failed to update member(s)');
+        handleApiErrorResponse(response, 'Failed to update relationship(s)');
       }
     } catch (err: any) {
       handleApiError(err, 'API Error during save');

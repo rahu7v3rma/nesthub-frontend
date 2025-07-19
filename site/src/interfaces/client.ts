@@ -5,6 +5,7 @@ export interface Client {
   phone: string;
   lastActivity: string;
   propertiesCount: number;
+  isArchived: boolean;
 }
 
 export type ClientFormRowData = {
@@ -15,6 +16,7 @@ export type ClientFormRowData = {
   email: string;
   phone: string;
   isNew?: boolean;
+  isEmailVerified?: boolean;
 };
 
 export type ErrorResponseType = {

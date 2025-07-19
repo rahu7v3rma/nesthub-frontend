@@ -1,7 +1,13 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import React, { useState, useEffect, FormEvent, useRef } from 'react';
+import React, {
+  useState,
+  useEffect,
+  FormEvent,
+  useRef,
+  useCallback,
+} from 'react';
 
 import { setPasswordVerify, setPasswordConfirm } from '@/services/api';
 import Button from '@/shared/Button';
@@ -26,22 +32,24 @@ export default function SetPasswordRedirectPage() {
 
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const triggerRedirect = (path: string, delay: number = 3000) => {
-    setIsRedirecting(true);
-    const destination = path === '/auth/signin' ? 'sign in page' : 'homepage';
-    setRedirectMessage(
-      `You will be redirected to the ${destination} shortly...`,
-    );
+  const triggerRedirect = useCallback(
+    (path: string, delay: number = 3000) => {
+      setIsRedirecting(true);
+      const destination = path === '/auth/signin' ? 'sign in page' : 'homepage';
+      setRedirectMessage(
+        `You will be redirected to the ${destination} shortly...`,
+      );
 
-    // Clear any existing timeout before setting a new one
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
 
-    timeoutRef.current = setTimeout(() => {
-      router.push(path);
-    }, delay);
-  };
+      timeoutRef.current = setTimeout(() => {
+        router.push(path);
+      }, delay);
+    },
+    [router],
+  );
 
   useEffect(() => {
     // Cleanup timeout on component unmount
@@ -95,7 +103,7 @@ export default function SetPasswordRedirectPage() {
     };
 
     verifyToken();
-  }, [token]);
+  }, [token, triggerRedirect]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

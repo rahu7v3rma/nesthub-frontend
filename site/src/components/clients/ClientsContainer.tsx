@@ -9,8 +9,10 @@ import {
   useDisclosure,
 } from '@heroui/react';
 import { useCallback, useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 
 import { Client } from '@/interfaces/client';
+import { editClientData } from '@/services/api';
 import SearchInput from '@/shared/SearchInput';
 
 import AddClientModal from './AddClientModal';
@@ -19,16 +21,32 @@ import ClientsTable from './ClientsTable';
 
 type ClientsContainerProps = {
   clients: Client[];
-  reloadClients: (activeFilter: true | undefined) => Promise<void>;
+  reloadClients: (params: { active?: true; search?: string }) => Promise<void>;
+  refreshClientsData: () => Promise<void>;
   showOnlyActiveClients: boolean;
   setShowOnlyActiveClients: (value: boolean) => void;
+  currentPage: number;
+  totalPages: number;
+  setCurrentPage: (page: number) => void;
+  hasNextPage: boolean;
+  searchQuery: string;
+  onSearch: (query: string) => void | Promise<void>;
+  loading?: boolean;
 };
 
 export default function ClientsContainer({
   clients,
   reloadClients,
+  refreshClientsData,
   showOnlyActiveClients,
   setShowOnlyActiveClients,
+  currentPage,
+  totalPages,
+  setCurrentPage,
+  hasNextPage,
+  searchQuery,
+  onSearch,
+  loading,
 }: ClientsContainerProps) {
   const [filteredClients, setFilteredClients] = useState<Client[]>(clients);
   const { isOpen, onOpen, onClose, onOpenChange } = useDisclosure();
@@ -39,14 +57,10 @@ export default function ClientsContainer({
   }, [clients]);
 
   const handleSearch = useCallback(
-    (query: string) => {
-      setFilteredClients(
-        clients.filter((client) =>
-          client.name.toLowerCase().includes(query.toLowerCase()),
-        ),
-      );
+    async (query: string) => {
+      await onSearch(query);
     },
-    [clients],
+    [onSearch],
   );
 
   const handleRowClick = (row: Client) => {
@@ -59,9 +73,33 @@ export default function ClientsContainer({
     setEditClient(null);
   };
 
-  const handleSwitchChange = (isSelected: boolean) => {
+  const handleSwitchChange = async (isSelected: boolean) => {
     setShowOnlyActiveClients(isSelected);
-    reloadClients(isSelected ? true : undefined);
+    await reloadClients({
+      active: isSelected ? true : undefined,
+      search: searchQuery,
+    });
+  };
+
+  const handleArchiveToggle = async (client: Client, isArchived: boolean) => {
+    setFilteredClients((prev) =>
+      prev.map((c) => (c.id === client.id ? { ...c, isArchived } : c)),
+    );
+    try {
+      await editClientData(client.id, { is_active: !isArchived });
+      toast.success(
+        isArchived
+          ? 'Client archived successfully.'
+          : 'Client unarchived successfully.',
+      );
+    } catch (err) {
+      setFilteredClients((prev) =>
+        prev.map((c) =>
+          c.id === client.id ? { ...c, isArchived: !isArchived } : c,
+        ),
+      );
+      toast.error('Failed to update archive status.');
+    }
   };
 
   return (
@@ -95,7 +133,11 @@ export default function ClientsContainer({
             Only active clients
           </Switch>
           <div className="order-2 md:order-2 w-full md:w-auto">
-            <SearchInput onSearch={handleSearch} />
+            <SearchInput
+              onSearch={handleSearch}
+              value={searchQuery}
+              onChange={handleSearch}
+            />
           </div>
 
           <div className="order-3 md:order-3 hidden md:block">
@@ -115,7 +157,7 @@ export default function ClientsContainer({
           onOpenChange={onOpenChange}
           onClose={onClose}
           onDataChange={async () => {
-            await reloadClients(showOnlyActiveClients ? true : undefined);
+            await refreshClientsData();
           }}
         />
       </CardHeader>
@@ -125,11 +167,19 @@ export default function ClientsContainer({
           <ClientsTable
             clients={filteredClients}
             onRowClick={(row) => handleRowClick(row)}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            setCurrentPage={(page: number) => setCurrentPage(page)}
+            hasNextPage={hasNextPage}
+            onArchiveToggle={handleArchiveToggle}
           />
         </div>
         {/* Mobile View */}
         <div className="block md:hidden m-2">
-          <ClientsList clients={filteredClients} />
+          <ClientsList
+            clients={filteredClients}
+            onArchiveToggle={handleArchiveToggle}
+          />
         </div>
       </CardBody>
     </Card>

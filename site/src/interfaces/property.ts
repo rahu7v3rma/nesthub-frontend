@@ -28,6 +28,7 @@ export interface Property {
   };
   realtor_property_id?: number;
   property_rating?: number;
+  is_property_toured?: boolean;
 }
 
 export interface AddProperty {
@@ -87,6 +88,7 @@ export interface PropertyDetails {
   deadline_datetime?: string;
   property_rating: number;
   is_property_toured: boolean;
+  is_deadline_checked: boolean;
 }
 
 export interface PropertyOffer {
@@ -95,6 +97,7 @@ export interface PropertyOffer {
   amount: number;
   offer: string;
   offer_date: string;
+  contingencies_info?: string[] | string;
 }
 
 export interface PropertyOfferGraph {
@@ -170,4 +173,11 @@ export interface PropertyComparable {
   label: string;
   is_link_only?: boolean;
   url?: string;
+}
+
+export interface UpdatePropertyPayload {
+  id: number;
+  deadline_datetime?: string | null;
+  is_deadline_checked?: boolean;
+  note?: string | null;
 }

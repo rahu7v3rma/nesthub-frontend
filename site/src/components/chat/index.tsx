@@ -2,7 +2,7 @@
 
 import moment from 'moment';
 import { useParams } from 'next/navigation';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useUser } from '@/hooks/useUser';
 import {
@@ -50,35 +50,38 @@ const Chat = ({ windowHeight, isMobile }: Height) => {
       const height = chatRef.current.getBoundingClientRect().height;
       setChatHeight(height);
     }
-  }, [chats, windowHeight]);
+  }, [chats, windowHeight, isMobile]);
 
-  const fetchChats = (signal?: AbortSignal) => {
-    getChatMessages({
-      realtor_property_id: realtor_property_id as string,
-      property_id: property_id as string,
-    })
-      .then((response) => {
-        const mappedMessages =
-          response?.messages?.map((msg: any) => {
-            const { id, message, timestamp, user } = msg || {};
-
-            return {
-              id,
-              message,
-              time: moment(timestamp).format('HH:mm'),
-              date: moment(timestamp).format('MMM D, YYYY'),
-              sender: user?.name || '',
-              isReceiver: user?.id !== loggedInUser?.id,
-            };
-          }) || [];
-
-        setChats(mappedMessages);
+  const fetchChats = useCallback(
+    (signal?: AbortSignal) => {
+      getChatMessages({
+        realtor_property_id: realtor_property_id as string,
+        property_id: property_id as string,
       })
-      .catch((err) => {
-        if (signal?.aborted) console.log('Fetch aborted');
-        else console.error('Error fetching chats:', err);
-      });
-  };
+        .then((response) => {
+          const mappedMessages =
+            response?.messages?.map((msg: any) => {
+              const { id, message, timestamp, user } = msg || {};
+
+              return {
+                id,
+                message,
+                time: moment(timestamp).format('HH:mm'),
+                date: moment(timestamp).format('MMM D, YYYY'),
+                sender: user?.name || '',
+                isReceiver: user?.id !== loggedInUser?.id,
+              };
+            }) || [];
+
+          setChats(mappedMessages);
+        })
+        .catch((err) => {
+          if (signal?.aborted) console.log('Fetch aborted');
+          else console.error('Error fetching chats:', err);
+        });
+    },
+    [realtor_property_id, property_id, loggedInUser?.id],
+  );
 
   useEffect(() => {
     const controller = new AbortController();
@@ -89,7 +92,7 @@ const Chat = ({ windowHeight, isMobile }: Height) => {
     return () => {
       controller.abort();
     };
-  }, []);
+  }, [fetchChats]);
 
   const lastMessageId = chats.length > 0 ? chats[chats.length - 1].id : 0;
 
@@ -120,7 +123,6 @@ const Chat = ({ windowHeight, isMobile }: Height) => {
             };
           }) || [];
 
-        console.log({ mappedMessages });
         if (mappedMessages.length > 0) {
           setChats((prev) => {
             const existingIds = new Set(prev.map((chat) => chat.id));
@@ -134,7 +136,7 @@ const Chat = ({ windowHeight, isMobile }: Height) => {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, []);
+  });
 
   const sendMessage = (message: string) => {
     sendChatMessage({

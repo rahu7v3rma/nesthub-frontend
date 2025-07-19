@@ -13,67 +13,18 @@ import {
 import { today, parseDate, getLocalTimeZone } from '@internationalized/date';
 import { ErrorMessage, Form, Formik } from 'formik';
 import { type ChangeEvent, useCallback, useState } from 'react';
-import { IconType } from 'react-icons';
-import {
-  BsFillCreditCardFill,
-  BsClockFill,
-  BsCurrencyDollar,
-} from 'react-icons/bs';
-import { IoIosListBox, IoIosCheckmark } from 'react-icons/io';
-import { MdSignalCellularAlt, MdSearch } from 'react-icons/md';
+import { BsCurrencyDollar } from 'react-icons/bs';
 import { toast } from 'react-toastify';
 import * as Yup from 'yup';
 
 import { addOffer } from '@/services/api';
+import { additionalInfoOptions } from '@/shared/OffersIcons/OffersIcons';
 
 type Props = {
   isOpen: boolean;
   onOpenChange: () => void;
   onClose: () => void;
 };
-
-interface AdditionalInfoItem {
-  id: string;
-  label: string;
-  Icon: IconType;
-}
-
-const LoanIcon = () => {
-  return (
-    <div className="relative flex w-10 h-10">
-      <BsFillCreditCardFill className="text-black text-2xl m-auto" />
-      <BsClockFill className="absolute top-5 right-1 text-sm bg-[#F6F6F6] rounded-full p-0.5" />
-    </div>
-  );
-};
-
-const AppraisalIcon = () => {
-  return (
-    <div className="relative flex w-10 h-10">
-      <MdSignalCellularAlt className="transform -scale-x-100 text-black text-2xl m-auto" />
-      <MdSearch className="absolute top-[8px] right-[9px] text-sm bg-[#F6F6F6] rounded-full p-[0]" />
-    </div>
-  );
-};
-
-const InspectionIcon = () => {
-  return (
-    <div className="relative flex w-10 h-10">
-      <IoIosListBox className="text-black text-2xl m-auto" />
-      <IoIosCheckmark className="absolute top-5 right-1 text-sm bg-[#F6F6F6] rounded-full" />
-    </div>
-  );
-};
-
-const additionalInfoOptions: AdditionalInfoItem[] = [
-  { id: 'loan', label: 'Loan', Icon: LoanIcon },
-  { id: 'appraisal', label: 'Appraisal', Icon: AppraisalIcon },
-  { id: 'inspection', label: 'Inspection', Icon: InspectionIcon },
-];
-
-const labelToIconMap = new Map(
-  additionalInfoOptions.map((option) => [option.label, option.Icon]),
-);
 
 export default function AddOfferModal({
   isOpen,
@@ -180,59 +131,61 @@ export default function AddOfferModal({
                   {({ handleChange, values, setFieldValue }) => (
                     <Form>
                       <div className="flex flex-col md:flex-row gap-4 w-full">
-                        <DatePicker
-                          name="offerDate"
-                          label="Offer date"
-                          labelPlacement="outside"
-                          selectorButtonPlacement="start"
-                          size="lg"
-                          radius="full"
-                          defaultValue={currentDate}
-                          minValue={today(getLocalTimeZone())}
-                          onChange={(value) => {
-                            if (value) {
-                              setFieldValue('offerDate', value.toString());
+                        <div className="w-full">
+                          <DatePicker
+                            name="offerDate"
+                            label="Offer date"
+                            labelPlacement="outside"
+                            selectorButtonPlacement="start"
+                            size="lg"
+                            radius="full"
+                            defaultValue={currentDate}
+                            minValue={today(getLocalTimeZone())}
+                            onChange={(value) => {
+                              if (value) {
+                                setFieldValue('offerDate', value.toString());
+                              }
+                            }}
+                            classNames={{
+                              inputWrapper:
+                                'bg-gray-50 border-gray-200 hover:border-gray-300 focus-within:border-primary shadow-none',
+                              label: 'text-gray-700 font-medium',
+                            }}
+                          />
+                          <ErrorMessage
+                            name="offerDate"
+                            component="div"
+                            className="text-red-500 text-sm mt-1"
+                          />
+                        </div>
+                        <div className="w-full">
+                          <Input
+                            name="amount"
+                            type="text"
+                            onChange={(evt) =>
+                              onOfferAmountChange(evt, setFieldValue)
                             }
-                          }}
-                          classNames={{
-                            inputWrapper:
-                              'bg-gray-50 border-gray-200 hover:border-gray-300 focus-within:border-primary shadow-none',
-                            label: 'text-gray-700 font-medium',
-                          }}
-                        />
-                        <Input
-                          name="amount"
-                          type="text"
-                          onChange={(evt) =>
-                            onOfferAmountChange(evt, setFieldValue)
-                          }
-                          value={values?.amount}
-                          label="Amount"
-                          labelPlacement="outside"
-                          startContent={
-                            <BsCurrencyDollar className="text-gray-900" />
-                          }
-                          size="lg"
-                          radius="full"
-                          classNames={{
-                            inputWrapper:
-                              'bg-gray-50 border-gray-200 hover:border-gray-300 focus-within:border-primary shadow-none mt-1',
-                            input: 'bg-transparent',
-                            label: 'text-gray-700 font-medium mt-[2px]',
-                          }}
-                        />
-                      </div>
-                      <div className="w-full flex justify-start ml-2 mb-2">
-                        <ErrorMessage
-                          name="amount"
-                          component="div"
-                          className="text-red-500 text-sm mt-1"
-                        />
-                        <ErrorMessage
-                          name="offerDate"
-                          component="div"
-                          className="text-red-500 text-sm mt-1"
-                        />
+                            value={values?.amount}
+                            label="Amount"
+                            labelPlacement="outside"
+                            startContent={
+                              <BsCurrencyDollar className="text-gray-900" />
+                            }
+                            size="lg"
+                            radius="full"
+                            classNames={{
+                              inputWrapper:
+                                'bg-gray-50 border-gray-200 hover:border-gray-300 focus-within:border-primary shadow-none mt-1',
+                              input: 'bg-transparent',
+                              label: 'text-gray-700 font-medium mt-[2px]',
+                            }}
+                          />
+                          <ErrorMessage
+                            name="amount"
+                            component="div"
+                            className="text-red-500 text-sm mt-1"
+                          />
+                        </div>
                       </div>
 
                       <div className="mt-8">

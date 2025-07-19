@@ -18,7 +18,6 @@ const ResetPassword = ({ params }: { params: Promise<{ token: string }> }) => {
   const { token } = use(params);
 
   useEffect(() => {
-    console.log({ token }, 'In UseEffect');
     resetPasswordVerify(token).catch(() => {
       toast.error('The link you followed may be broken or token expired!');
       router.replace('/auth/reset-password');

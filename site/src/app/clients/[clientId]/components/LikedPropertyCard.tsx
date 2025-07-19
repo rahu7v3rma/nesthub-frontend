@@ -28,6 +28,7 @@ export function LikedPropertyCard({ property }: LikedPropertyCardProps) {
       (property?.realtor_property_id || '') as string,
     );
     localStorage.setItem('clientId', (clientId || '') as string);
+    localStorage.removeItem('properties_page');
     router?.push(`/properties/${property.id}`);
   };
 
